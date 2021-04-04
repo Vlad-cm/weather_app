@@ -3,5 +3,6 @@ Simple web application built using web.py and
 bootstrap web frameworks.
 For run project use:
 ```angular2html
-python3 main.py <port>
+$ pip install -r requirements.txt
+$ python3 main.py <port>
 ```
