@@ -6,5 +6,5 @@ For run project use:
 $ pip install -r requirements.txt
 $ python3 main.py <port>
 ```
-You can see how the application works by following the link below:
+You can see how the application works by following the link:
 https://vlad-weather-application.herokuapp.com
