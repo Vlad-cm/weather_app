@@ -12,7 +12,7 @@ $def with (data)
         <div class="row justify-content-center">
             <div class="col-lg-4">
             $if data['cod'] == 200:
-                <div class="card" style="width: 18rem;">
+                <div class="card">
                     <img src="http://openweathermap.org/img/wn/$data["weather"][0]["icon"]@2x.png" class="card-img-top rounded mx-auto d-block w-50" alt="...">
                     <div class="card-body">
                         <h5 class="card-title">$data["name"]</h5>
@@ -29,7 +29,14 @@ $def with (data)
                     <h1>Nothing found!</h1>
                     <p>Please use the following type of request:</p>
                     <p>http://site.name/<b>Cityname</b></p>
+                    <h3>OR</h3>
                 </div>
+            <form action="/" method="post">
+                <div class="input-group mb-3 mt-4">
+                    <input type="text" name="name" class="form-control" placeholder="Enter city name" aria-label="City name" aria-describedby="button-addon2">
+                    <button class="btn btn-outline-secondary" type="submit" id="button-addon2">Find</button>
+                </div>
+            </form>
             </div>
         </div>
 </body>

@@ -35,6 +35,9 @@ class get_weather:
     def GET(self, name):
         return render.index(get_open_weather_data(name))
 
+    def POST(self, name=None):
+        return render.index(get_open_weather_data(web.input().get("name")))
+
 
 if __name__ == "__main__":
     app.run()
