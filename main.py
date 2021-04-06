@@ -1,7 +1,13 @@
 import web
 import requests
 
+data_from_home = {
+    'temp': 0,
+    'bright': 0
+}
+
 urls = (
+    '/send-data', 'send_data',
     '/get-temp', 'get_temp',
     '/(.*)', 'get_weather'
 )
@@ -24,6 +30,14 @@ def get_open_weather_data(name):
     return requests.get(api_url, params=params).json()
 
 
+class send_data:
+    def GET(self):
+        i = web.input(temp=None, bright=None)
+        data_from_home.update({'temp': i.temp})
+        data_from_home.update({'bright': i.bright})
+        return data_from_home
+
+
 class get_temp:
     def GET(self):
         i = web.input(name=None)
@@ -33,10 +47,10 @@ class get_temp:
 
 class get_weather:
     def GET(self, name):
-        return render.index(get_open_weather_data(name))
+        return render.index(data=get_open_weather_data(name), hometemp=data_from_home)
 
     def POST(self, name=None):
-        return render.index(get_open_weather_data(web.input().get("name")))
+        return render.index(data=get_open_weather_data(web.input().get("name")), hometemp=data_from_home)
 
 
 if __name__ == "__main__":
