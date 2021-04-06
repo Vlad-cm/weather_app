@@ -4,7 +4,7 @@ import requests
 LOCAL_DEBUG = False
 
 local_url = 'http://localhost:8080'
-remote_url = 'https://vlad-weather-application.herokuapp.com/'
+remote_url = 'https://vlad-weather-application.herokuapp.com'
 url = ''
 
 try:
