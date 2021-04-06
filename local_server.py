@@ -4,7 +4,7 @@ import requests
 LOCAL_DEBUG = False
 
 local_url = 'http://localhost:8080'
-remote_url = 'https://vlad-weather-application.herokuapp.com/'
+remote_url = 'https://vlad-weather-application.herokuapp.com'
 url = ''
 
 try:
@@ -18,7 +18,7 @@ try:
             if LOCAL_DEBUG:
                 url = local_url
             else:
-                api_url = remote_url
+                url = remote_url
             api_url = f'{url}/send-data?temp={temp}&bright={bright}'
             try:
                 requests.get(api_url)
