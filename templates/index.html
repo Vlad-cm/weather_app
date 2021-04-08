@@ -1,4 +1,4 @@
-$def with (data, hometemp)
+$def with (data, hometemp, is_room)
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,17 +12,6 @@ $def with (data, hometemp)
         <div class="row justify-content-center">
             <div class="col-lg-4">
             $if data['cod'] == 200:
-                $if hometemp['bright'] != 0:
-                    <div class="alert alert-primary" role="alert">
-                        <span>Temperature on the windowsill:&nbsp;</span>
-                        <span class="badge rounded-pill bg-success">$hometemp['temp'] &#8451;</span>
-                    </div>
-                    <div class="alert alert-primary" role="alert">
-                        <span>Brightness on the windowsill:&nbsp;</span>
-                        <span class="badge rounded-pill bg-danger">$hometemp['bright']</span>
-                    </div>
-                $else:
-                    <div></div>
                 <div class="card">
                     <img src="http://openweathermap.org/img/wn/$data["weather"][0]["icon"]@2x.png" class="card-img-top rounded mx-auto d-block w-50" alt="...">
                     <div class="card-body">
@@ -30,8 +19,9 @@ $def with (data, hometemp)
                     </div>
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item">Current temperature is $data["main"]["temp"] &#8451;</li>
-                        <li class="list-group-item">The temperature feels like $data["main"]["feels_like"] &#8451;</li>
-                        <li class="list-group-item">Atmospheric pressure is $data["main"]["pressure"] hPa and air humidity is $data["main"]["humidity"] %</li>
+                        <li class="list-group-item">The temperature feels like is $data["main"]["feels_like"] &#8451;</li>
+                        <li class="list-group-item">Atmospheric pressure is $data["main"]["pressure"] hPa</li>
+                        <li class="list-group-item">Air humidity is $data["main"]["humidity"] %</li>
                     </ul>
                 </div>
             $else:
@@ -47,7 +37,29 @@ $def with (data, hometemp)
                     <button class="btn btn-outline-secondary" type="submit" id="button-addon2">Find</button>
                 </div>
             </form>
+            $if data['cod'] != 200:
+                <div class="text-center"><i><small>If you want to see the temperature in my room, use <b>"room"</b> instead of the <b>city name</b></small></i></div>
+            $else:
+                <div></div>
+            $if is_room:
+               <div class="card mt-4">
+                      <div class="card-body">
+                        <h5 class="card-title">Temperature in my room</h5>
+                        <p class="card-text">
+                                <div class="alert alert-primary" role="alert">
+                                    <span>Temperature in my room:&nbsp;</span>
+                                    <span class="badge rounded-pill bg-success">$hometemp['temp'] &#8451;</span>
+                                </div>
+                                <div class="alert alert-primary" role="alert">
+                                    <span>Brightness in my room:&nbsp;</span>
+                                    <span class="badge rounded-pill bg-danger">$hometemp['bright']</span>
+                                </div>
+                        </p>
+                      </div>
+                    </div>
             </div>
         </div>
-        </body>
+
+    </div>
+</body>
 </html>

@@ -47,10 +47,16 @@ class get_temp:
 
 class get_weather:
     def GET(self, name):
-        return render.index(data=get_open_weather_data(name), hometemp=data_from_home)
+        if name.lower() == "room":
+            return render.index(data={'cod': 404}, hometemp=data_from_home, is_room=True)
+        else:
+            return render.index(data=get_open_weather_data(name), hometemp=data_from_home, is_room=False)
 
     def POST(self, name=None):
-        return render.index(data=get_open_weather_data(web.input().get("name")), hometemp=data_from_home)
+        if web.input().get("name").lower() == "room":
+            return render.index(data={'cod': 404}, hometemp=data_from_home, is_room=True)
+        else:
+            return render.index(data=get_open_weather_data(web.input().get("name")), hometemp=data_from_home, is_room=False)
 
 
 if __name__ == "__main__":
