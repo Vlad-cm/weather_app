@@ -1,8 +1,9 @@
 import sys
-import time
 
-import serial
 import requests
+import serial
+import win32con
+import win32gui
 
 LOCAL_DEBUG = False
 
@@ -10,6 +11,10 @@ if LOCAL_DEBUG:
     url = 'http://localhost:8080'
 else:
     url = 'https://vlad-weather-application.herokuapp.com'
+
+if not LOCAL_DEBUG:
+    hide = win32gui.GetForegroundWindow()
+    win32gui.ShowWindow(hide, win32con.SW_HIDE)
 
 try:
     ser = serial.Serial('COM3', 115200, bytesize=8, timeout=2, stopbits=serial.STOPBITS_ONE)
