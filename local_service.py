@@ -1,3 +1,6 @@
+import sys
+import time
+
 import serial
 import requests
 
@@ -9,7 +12,11 @@ else:
     url = 'https://vlad-weather-application.herokuapp.com'
 
 try:
-    ser = serial.Serial('COM3', 115200, timeout=0)
+    ser = serial.Serial('COM3', 115200, bytesize=8, timeout=2, stopbits=serial.STOPBITS_ONE)
+    if len(sys.argv) > 1 and sys.argv[1].isdigit():
+        ser.readline()
+        ser.write(str.encode(sys.argv[1]+'\n'))
+
     while True:
         line = ser.readline()
         if line != b'' and line != b'\r\n':
