@@ -30,10 +30,18 @@ def get_open_weather_data(name):
     return requests.get(api_url, params=params).json()
 
 
+def is_float(str):
+    result = False
+    if str.count(".") == 1:
+        if str.replace(".", "").isdigit():
+            result = True
+    return result
+
+
 class send_data:
     def GET(self):
         i = web.input(temp=None, bright=None)
-        if i.temp.isdigit():
+        if is_float(i.temp) or i.temp.isdigit():
             if -50.0 <= float(i.temp) <= 50.0:
                 data_from_home.update({'temp': i.temp})
         if i.bright.isdigit():
@@ -60,7 +68,8 @@ class get_weather:
         if web.input().get("name").lower() == "room":
             return render.index(data={'cod': 404}, hometemp=data_from_home, is_room=True)
         else:
-            return render.index(data=get_open_weather_data(web.input().get("name")), hometemp=data_from_home, is_room=False)
+            return render.index(data=get_open_weather_data(web.input().get("name")), hometemp=data_from_home,
+                                is_room=False)
 
 
 if __name__ == "__main__":
