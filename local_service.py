@@ -7,6 +7,7 @@ import win32gui
 
 LOCAL_DEBUG = False
 
+
 if LOCAL_DEBUG:
     url = 'http://localhost:8080'
 else:

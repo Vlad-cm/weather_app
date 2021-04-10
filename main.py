@@ -33,8 +33,12 @@ def get_open_weather_data(name):
 class send_data:
     def GET(self):
         i = web.input(temp=None, bright=None)
-        data_from_home.update({'temp': i.temp})
-        data_from_home.update({'bright': i.bright})
+        if i.temp.isdigit():
+            if -50.0 <= float(i.temp) <= 50.0:
+                data_from_home.update({'temp': i.temp})
+        if i.bright.isdigit():
+            if 0 <= int(i.bright) <= 255:
+                data_from_home.update({'bright': i.bright})
         return data_from_home
 
 
