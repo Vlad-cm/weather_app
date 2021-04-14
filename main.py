@@ -1,10 +1,10 @@
 import web
 import requests
+import statistics
 
-data_from_home = {
-    'temp': 0,
-    'bright': 0
-}
+db = web.database(dbn='sqlite', db='weather.db')
+temp_lst = []
+bright_lst = []
 
 urls = (
     '/send-data', 'send_data',
@@ -43,11 +43,16 @@ class send_data:
         i = web.input(temp=None, bright=None)
         if is_float(i.temp) or i.temp.isdigit():
             if -50.0 <= float(i.temp) <= 50.0:
-                data_from_home.update({'temp': i.temp})
+                temp_lst.append(float(i.temp))
         if i.bright.isdigit():
             if 0 <= int(i.bright) <= 255:
-                data_from_home.update({'bright': i.bright})
-        return data_from_home
+                bright_lst.append(int(i.bright))
+        if (len(temp_lst) or len(bright_lst)) >= 100:
+            db.insert('room_temp', temp=statistics.mean(temp_lst), bright=int(statistics.mean(bright_lst)),
+                      date=web.SQLLiteral("DATETIME('now')"))
+            temp_lst.clear()
+            bright_lst.clear()
+        return {'cod': 200}
 
 
 class get_temp:
@@ -57,19 +62,31 @@ class get_temp:
         return data["main"]["temp"]
 
 
+def get_data_from_home():
+    last_row = db.select("room_temp", order="id DESC LIMIT 1")[0]
+    return {"temp": last_row["temp"], "bright": last_row["bright"]}
+
+
+def request_init(name):
+    data_from_home = {'cod': 404}
+    if name == "room":
+        data = {'cod': 404}
+        is_room = True
+        data_from_home = get_data_from_home()
+    else:
+        data = get_open_weather_data(name)
+        is_room = False
+    return data, data_from_home, is_room
+
+
 class get_weather:
     def GET(self, name):
-        if name.lower() == "room":
-            return render.index(data={'cod': 404}, hometemp=data_from_home, is_room=True)
-        else:
-            return render.index(data=get_open_weather_data(name), hometemp=data_from_home, is_room=False)
+        data, data_from_home, is_room = request_init(name.lower())
+        return render.index(data=data, hometemp=data_from_home, is_room=is_room)
 
     def POST(self, name=None):
-        if web.input().get("name").lower() == "room":
-            return render.index(data={'cod': 404}, hometemp=data_from_home, is_room=True)
-        else:
-            return render.index(data=get_open_weather_data(web.input().get("name")), hometemp=data_from_home,
-                                is_room=False)
+        data, data_from_home, is_room = request_init(web.input().get("name").lower())
+        return render.index(data=data, hometemp=data_from_home, is_room=is_room)
 
 
 if __name__ == "__main__":
