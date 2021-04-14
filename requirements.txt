@@ -1,3 +1,4 @@
 requests==2.25.1
 web.py==0.62
 pyserial~=3.5
+psycopg2-binary==2.8.6
