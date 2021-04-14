@@ -48,7 +48,7 @@ class send_data:
             if 0 <= int(i.bright) <= 255:
                 bright_lst.append(int(i.bright))
         if (len(temp_lst) or len(bright_lst)) >= 100:
-            db.insert('room_temp', temp=statistics.mean(temp_lst), bright=int(statistics.mean(bright_lst)),
+            db.insert('room_temp', temp=round(statistics.mean(temp_lst), 2), bright=int(statistics.mean(bright_lst)),
                       date=web.SQLLiteral("DATETIME('now')"))
             temp_lst.clear()
             bright_lst.clear()
