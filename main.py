@@ -2,7 +2,8 @@ import web
 import requests
 import statistics
 
-db = web.database(dbn='sqlite', db='weather.db')
+db = web.database(dburl="postgres://eqroiidmlipflp:505f497547db185a4824a73f51eba0f00801b146849d6676898be869c4909ebf@ec2-34-252-251-16.eu-west-1.compute.amazonaws.com:5432/d6lc3m0qdp3q1")
+
 temp_lst = []
 bright_lst = []
 
@@ -56,7 +57,7 @@ class send_data:
                 bright_lst.append(int(i.bright))
         if (len(temp_lst) or len(bright_lst)) >= 100:
             db.insert('room_temp', temp=round(statistics.mean(temp_lst), 2), bright=int(statistics.mean(bright_lst)),
-                      date=web.SQLLiteral("DATETIME('now')"))
+                      date=web.SQLLiteral("current_timestamp"))
             temp_lst.clear()
             bright_lst.clear()
         return {'cod': 200}
