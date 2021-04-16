@@ -2,7 +2,8 @@ import web
 import requests
 import statistics
 
-db = web.database(dburl="postgres://eqroiidmlipflp:505f497547db185a4824a73f51eba0f00801b146849d6676898be869c4909ebf@ec2-34-252-251-16.eu-west-1.compute.amazonaws.com:5432/d6lc3m0qdp3q1")
+db = web.database(
+    dburl="postgres://eqroiidmlipflp:505f497547db185a4824a73f51eba0f00801b146849d6676898be869c4909ebf@ec2-34-252-251-16.eu-west-1.compute.amazonaws.com:5432/d6lc3m0qdp3q1")
 
 temp_lst = []
 bright_lst = []
@@ -26,10 +27,18 @@ params = {
 }
 
 
+def get_lamp_state():
+    return str(db.select("lamp_state", order="id DESC LIMIT 1")[0]["state"]).strip() == "on"
+
+
 class lamp_state:
     def GET(self):
-        last_row = db.select("lamp_state", order="id DESC LIMIT 1")[0]
-        return last_row[2]
+        return get_lamp_state()
+
+    def POST(self):
+        db.insert('lamp_state', state=str(web.input().get("lampswitch")).strip(),
+                  date=web.SQLLiteral("current_timestamp"))
+        raise web.seeother('/' + str(web.input().get("cityname")).strip())
 
 
 def get_open_weather_data(name):
@@ -90,11 +99,11 @@ def request_init(name):
 class get_weather:
     def GET(self, name):
         data, data_from_home, is_room = request_init(name.lower())
-        return render.index(data=data, hometemp=data_from_home, is_room=is_room)
+        return render.index(data=data, hometemp=data_from_home, is_room=is_room, lamp_state=get_lamp_state())
 
     def POST(self, name=None):
         data, data_from_home, is_room = request_init(web.input().get("name").lower())
-        return render.index(data=data, hometemp=data_from_home, is_room=is_room)
+        return render.index(data=data, hometemp=data_from_home, is_room=is_room, lamp_state=get_lamp_state())
 
 
 if __name__ == "__main__":

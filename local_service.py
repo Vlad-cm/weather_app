@@ -5,8 +5,9 @@ import serial
 import win32con
 import win32gui
 
-LOCAL_DEBUG = False
+LOCAL_DEBUG = True
 
+PREVIOUS_STATE = "None"
 
 if LOCAL_DEBUG:
     url = 'http://localhost:8080'
@@ -24,6 +25,20 @@ try:
         ser.write(str.encode(sys.argv[1]+'\n'))
 
     while True:
+        content = ""
+        api_url = f'{url}/lamp-state'
+        try:
+            content = requests.get(api_url)
+        except requests.exceptions.RequestException as e:
+            print(e)
+
+        if content.text.strip() != PREVIOUS_STATE:
+            PREVIOUS_STATE = content.text.strip()
+            if content.text.strip() == "True":
+                ser.write(str.encode("light_on" + '\n'))
+            else:
+                ser.write(str.encode("light_off" + '\n'))
+
         line = ser.readline()
         if line != b'' and line != b'\r\n':
             if LOCAL_DEBUG:

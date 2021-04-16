@@ -1,4 +1,4 @@
-$def with (data, hometemp, is_room)
+$def with (data, hometemp, is_room, lamp_state)
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,10 +11,30 @@ $def with (data, hometemp, is_room)
     <div class="container mt-3 mb-5">
         <div class="row justify-content-center">
             <div class="col-lg-4">
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" id="flexSwitchCheckDefault">
-                    <label class="form-check-label" for="flexSwitchCheckDefault">Lamp state(on/off)</label>
-                </div>
+                <form name="lampswitchform" action="/lamp-state" method="post">
+                    <div class="form-check form-switch">
+                    $if lamp_state:
+                        <input name="lampswitch" class="form-check-input" onclick="document.forms['lampswitchform'].submit();" type="checkbox" id="flexSwitchCheckDefault" checked>
+                        $if data['cod'] == 200:
+                            <input name="cityname" type="text" value="$data["name"]" hidden>
+                        $else:
+                            $if is_room:
+                                <input name="cityname" type="text" value="room" hidden>
+                            $else:
+                                <input name="cityname" type="text" value="" hidden>
+                        <label class="form-check-label" for="flexSwitchCheckDefault">Lamp state(on/off)</label>
+                    $else:
+                        <input name="lampswitch" class="form-check-input" onclick="document.forms['lampswitchform'].submit();" type="checkbox" id="flexSwitchCheckDefault">
+                        $if data['cod'] == 200:
+                            <input name="cityname" type="text" value="$data["name"]" hidden>
+                        $else:
+                            $if is_room:
+                                <input name="cityname" type="text" value="room" hidden>
+                            $else:
+                                <input name="cityname" type="text" value="" hidden>
+                        <label class="form-check-label" for="flexSwitchCheckDefault">Lamp state(on/off)</label>
+                    </div>
+                </form>
             $if data['cod'] == 200:
                 <div class="card">
                     <img src="./static/img/$data["weather"][0]["icon"]0.jpg" class="card-img-top">
