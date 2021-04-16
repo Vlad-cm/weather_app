@@ -7,6 +7,7 @@ temp_lst = []
 bright_lst = []
 
 urls = (
+    '/lamp-state', 'lamp_state',
     '/send-data', 'send_data',
     '/get-temp', 'get_temp',
     '/(.*)', 'get_weather'
@@ -22,6 +23,12 @@ params = {
     'appid': '55a68388e0e2edf105c6dcb94ac9d6ba',
     'units': 'metric'
 }
+
+
+class lamp_state:
+    def GET(self):
+        last_row = db.select("lamp_state", order="id DESC LIMIT 1")[0]
+        return last_row[2]
 
 
 def get_open_weather_data(name):

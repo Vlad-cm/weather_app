@@ -11,6 +11,10 @@ $def with (data, hometemp, is_room)
     <div class="container mt-3 mb-5">
         <div class="row justify-content-center">
             <div class="col-lg-4">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="flexSwitchCheckDefault">
+                    <label class="form-check-label" for="flexSwitchCheckDefault">Lamp state(on/off)</label>
+                </div>
             $if data['cod'] == 200:
                 <div class="card">
                     <img src="./static/img/$data["weather"][0]["icon"]0.jpg" class="card-img-top">
