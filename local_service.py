@@ -5,7 +5,7 @@ import serial
 import win32con
 import win32gui
 
-LOCAL_DEBUG = True
+LOCAL_DEBUG = False
 
 PREVIOUS_STATE = "None"
 
