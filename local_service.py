@@ -15,9 +15,9 @@ if LOCAL_DEBUG:
 else:
     url = 'https://vlad-weather-application.herokuapp.com'
 
-if not LOCAL_DEBUG:
-    hide = win32gui.GetForegroundWindow()
-    win32gui.ShowWindow(hide, win32con.SW_HIDE)
+# if not LOCAL_DEBUG:
+#     hide = win32gui.GetForegroundWindow()
+#     win32gui.ShowWindow(hide, win32con.SW_HIDE)
 
 try:
     ser = serial.Serial('COM3', 115200, bytesize=8, timeout=2, stopbits=serial.STOPBITS_ONE)
@@ -30,17 +30,16 @@ try:
         api_url = f'{url}/lamp-state'
         try:
             content = requests.get(api_url)
+            if content.status_code == 200 and content.text.strip() != PREVIOUS_STATE:
+                PREVIOUS_STATE = content.text.strip()
+                if content.text.strip() == "True":
+                    ser.write(str.encode("light_on" + '\n'))
+                    time.sleep(1)
+                else:
+                    ser.write(str.encode("light_off" + '\n'))
+                    time.sleep(1)
         except requests.exceptions.RequestException as e:
             print(e)
-
-        if content.text.strip() != PREVIOUS_STATE:
-            PREVIOUS_STATE = content.text.strip()
-            if content.text.strip() == "True":
-                ser.write(str.encode("light_on" + '\n'))
-                time.sleep(1)
-            else:
-                ser.write(str.encode("light_off" + '\n'))
-                time.sleep(1)
 
         line = ser.readline()
         if line != b'' and line != b'\r\n':
@@ -56,6 +55,7 @@ try:
                 requests.get(api_url)
             except requests.exceptions.RequestException as e:
                 print(e)
+        time.sleep(0.5)
 except Exception as e:
     print(e)
 finally:
