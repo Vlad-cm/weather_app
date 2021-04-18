@@ -1,89 +1,102 @@
 $def with (data, hometemp, is_room, lamp_state)
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>WeatherApp</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
-</head>
-<body>
-    <div class="container mt-3 mb-5">
-        <div class="row justify-content-center">
-            <div class="col-lg-4">
-                <form name="lampswitchform" action="/lamp-state" method="post">
-                    <div class="form-check form-switch">
-                    $if lamp_state:
-                        <input name="lampswitch" class="form-check-input" onclick="document.forms['lampswitchform'].submit();" type="checkbox" id="flexSwitchCheckDefault" checked>
-                        $if data['cod'] == 200:
-                            <input name="cityname" type="text" value="$data["name"]" hidden>
-                        $else:
-                            $if is_room:
-                                <input name="cityname" type="text" value="room" hidden>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>WeatherApp</title>
+        <link href="static/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
+        <link href="static/css/style.css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="container mb-3">
+            <div class="row justify-content-center">
+                <div class="col-lg-4">
+                    <hr />
+                    <form name="lampswitchform" action="/lamp-state" method="post">
+                        <div class="form-check form-switch form-switch-md mt-2 mb-3" data-toggle="tooltip" data-placement="bottom" title="Turns on or off the lamp in my room">
+                        $if lamp_state:
+                            <input name="lampswitch" class="form-check-input" onclick="document.forms['lampswitchform'].submit();" type="checkbox" id="flexSwitchCheckDefault"  checked>
+                            $if data['cod'] == 200:
+                                <input name="cityname" type="text" value="$data["name"]" hidden>
                             $else:
-                                <input name="cityname" type="text" value="" hidden>
-                        <label class="form-check-label" for="flexSwitchCheckDefault">Lamp state(on/off)</label>
-                    $else:
-                        <input name="lampswitch" class="form-check-input" onclick="document.forms['lampswitchform'].submit();" type="checkbox" id="flexSwitchCheckDefault">
-                        $if data['cod'] == 200:
-                            <input name="cityname" type="text" value="$data["name"]" hidden>
+                                $if is_room:
+                                    <input name="cityname" type="text" value="room" hidden>
+                                $else:
+                                    <input name="cityname" type="text" value="" hidden>
+                            <label class="form-check-label" for="flexSwitchCheckDefault">Lamp state(on/off)</label>
                         $else:
-                            $if is_room:
-                                <input name="cityname" type="text" value="room" hidden>
+                            <input name="lampswitch" class="form-check-input" onclick="document.forms['lampswitchform'].submit();" type="checkbox" id="flexSwitchCheckDefault">
+                            $if data['cod'] == 200:
+                                <input name="cityname" type="text" value="$data["name"]" hidden>
                             $else:
-                                <input name="cityname" type="text" value="" hidden>
-                        <label class="form-check-label" for="flexSwitchCheckDefault">Lamp state(on/off)</label>
+                                $if is_room:
+                                    <input name="cityname" type="text" value="room" hidden>
+                                $else:
+                                    <input name="cityname" type="text" value="" hidden>
+                            <label class="form-check-label" for="flexSwitchCheckDefault">Lamp state(on/off)</label>
+                        </div>
+                    </form>
+                    <hr />
+                $if data['cod'] == 200:
+                    <div class="card">
+                        <img src="./static/img/$data["weather"][0]["icon"]0.jpg" class="card-img-top">
+                        <div class="card-body">
+                            <h5 class="card-title">$data["name"]</h5>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item">Current temperature is $data["main"]["temp"] &#8451;</li>
+                                <li class="list-group-item">The temperature feels like is $data["main"]["feels_like"] &#8451;</li>
+                                <li class="list-group-item">Atmospheric pressure is $data["main"]["pressure"] hPa</li>
+                                <li class="list-group-item">Air humidity is $data["main"]["humidity"] %</li>
+                            </ul>
+                        </div>
+                    </div>
+                $else:
+                    <div class="text-center">
+                        <h1>Nothing found!</h1>
+                        <p>Please use the following type of request:</p>
+                        <p>http://site.name/<b>Cityname</b></p>
+                        <h3>OR</h3>
+                    </div>
+                <form action="/" method="post">
+                    <div class="input-group mb-3 mt-4">
+                        <input type="text" name="name" class="form-control" placeholder="Enter city name" aria-label="City name" aria-describedby="button-addon2">
+                        <button class="btn btn-outline-secondary" type="submit" id="button-addon2">Find</button>
                     </div>
                 </form>
-            $if data['cod'] == 200:
-                <div class="card">
-                    <img src="./static/img/$data["weather"][0]["icon"]0.jpg" class="card-img-top">
-                    <div class="card-body">
-                        <h5 class="card-title">$data["name"]</h5>
-                    </div>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">Current temperature is $data["main"]["temp"] &#8451;</li>
-                        <li class="list-group-item">The temperature feels like is $data["main"]["feels_like"] &#8451;</li>
-                        <li class="list-group-item">Atmospheric pressure is $data["main"]["pressure"] hPa</li>
-                        <li class="list-group-item">Air humidity is $data["main"]["humidity"] %</li>
-                    </ul>
+                $if data['cod'] != 200:
+                    <div class="text-center"><i><small>If you want to see the temperature in my room, use <b>"room"</b> instead of the <b>city name</b></small></i></div>
+                $else:
+                    <div></div>
+                $if is_room:
+                   <div class="card mt-4">
+                          <div class="card-body">
+                            <h5 class="card-title">Temperature in my room</h5>
+                            <div class="card-text">
+                                    <div class="alert alert-primary" role="alert">
+                                        <span>Temperature in my room:&nbsp;</span>
+                                        <span class="badge rounded-pill bg-success">$hometemp['temp'] &#8451;</span>
+                                    </div>
+                                    <div class="alert alert-primary" role="alert">
+                                        <span>Brightness in my room:&nbsp;</span>
+                                        <span class="badge rounded-pill bg-danger">$hometemp['bright']</span>
+                                    </div>
+                            </div>
+                          </div>
+                        </div>
                 </div>
-            $else:
-                <div class="text-center">
-                    <h1>Nothing found!</h1>
-                    <p>Please use the following type of request:</p>
-                    <p>http://site.name/<b>Cityname</b></p>
-                    <h3>OR</h3>
-                </div>
-            <form action="/" method="post">
-                <div class="input-group mb-3 mt-4">
-                    <input type="text" name="name" class="form-control" placeholder="Enter city name" aria-label="City name" aria-describedby="button-addon2">
-                    <button class="btn btn-outline-secondary" type="submit" id="button-addon2">Find</button>
-                </div>
-            </form>
-            $if data['cod'] != 200:
-                <div class="text-center"><i><small>If you want to see the temperature in my room, use <b>"room"</b> instead of the <b>city name</b></small></i></div>
-            $else:
-                <div></div>
-            $if is_room:
-               <div class="card mt-4">
-                      <div class="card-body">
-                        <h5 class="card-title">Temperature in my room</h5>
-                        <p class="card-text">
-                                <div class="alert alert-primary" role="alert">
-                                    <span>Temperature in my room:&nbsp;</span>
-                                    <span class="badge rounded-pill bg-success">$hometemp['temp'] &#8451;</span>
-                                </div>
-                                <div class="alert alert-primary" role="alert">
-                                    <span>Brightness in my room:&nbsp;</span>
-                                    <span class="badge rounded-pill bg-danger">$hometemp['bright']</span>
-                                </div>
-                        </p>
-                      </div>
-                    </div>
             </div>
         </div>
-
-    </div>
-</body>
+        <footer>
+            <div class="row justify-content-center">
+                <div class="col-lg-4 text-center">
+                    <p><small>© 2021 You can see the source code on my <a href="https://github.com/Vlad-cm/weather_app">GitHub</a></small></p>
+                </div>
+            </div>
+        </footer>
+        <script src="/static/js/jquery-3.5.1.js"></script>
+        <script src="/static/js/popper.min.js"></script>
+        <script src="/static/js/bootstrap.min.js"></script>
+        <script src="/static/js/weather-app.js"></script>
+    </body>
 </html>
