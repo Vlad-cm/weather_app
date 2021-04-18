@@ -1,4 +1,5 @@
 import sys
+import time
 
 import requests
 import serial
@@ -36,8 +37,10 @@ try:
             PREVIOUS_STATE = content.text.strip()
             if content.text.strip() == "True":
                 ser.write(str.encode("light_on" + '\n'))
+                time.sleep(1)
             else:
                 ser.write(str.encode("light_off" + '\n'))
+                time.sleep(1)
 
         line = ser.readline()
         if line != b'' and line != b'\r\n':
