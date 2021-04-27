@@ -1,3 +1,5 @@
+import json
+
 import web
 import requests
 import statistics
@@ -76,7 +78,12 @@ class get_temp:
     def GET(self):
         i = web.input(name=None)
         data = get_open_weather_data(i.name)
-        return "{\"temp\":" + str(data["main"]["temp"]) + ", \"code\": 200}"
+        output = {
+            "temp": data["main"]["temp"],
+            "code": 200
+        }
+
+        return json.dumps(output, indent=4)
 
 
 def get_data_from_home():
