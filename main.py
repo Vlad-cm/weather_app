@@ -76,7 +76,7 @@ class get_temp:
     def GET(self):
         i = web.input(name=None)
         data = get_open_weather_data(i.name)
-        return data["main"]["temp"]
+        return "{\"temp\":" + str(data["main"]["temp"]) + ", \"cod\": 200}"
 
 
 def get_data_from_home():
