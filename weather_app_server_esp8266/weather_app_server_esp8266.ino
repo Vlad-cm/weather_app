@@ -1,6 +1,11 @@
-#include "Arduino.h"
-#include "PCF8591.h"
-#define PCF8591_I2C_ADDRESS 0x48
+#include "DHTesp.h"
+
+#ifdef ESP32
+#pragma message(THIS EXAMPLE IS FOR ESP8266 ONLY!)
+#error Select ESP8266 board.
+#endif
+
+DHTesp dht;
 
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
@@ -12,16 +17,14 @@
 #define STAPSK  "you_password"
 #endif
 
-//=========ADC==========
+//======================
 long timeToDelaySendData = 2500;
 long timeToDelayGetState = 1000;
-bool greenDiode = false;
 unsigned long timing_one;
 unsigned long timing_two;
 const int relay = D2;
-
-PCF8591 pcf8591(PCF8591_I2C_ADDRESS);
 //======================
+
 String previousState = "False";
 
 const char* ssid = STASSID;
@@ -57,7 +60,7 @@ void handleNotFound() {
   server.send(404, "text/plain", message);
 }
 
-void setDelay() { 
+void setDelay() {
   String message = "";
   if (server.arg("delay") == "") {
     message = "{\n    \"message\": \"Delay not specified!\",\n    \"code\": 404\n}";
@@ -65,7 +68,7 @@ void setDelay() {
     message = "{\n    \"message\": \"set a delay for sending temperature data\",\n    \"value\": ";
     message += server.arg("delay");
     message += ",\n    \"code\": 200\n}";
-    
+
     timeToDelaySendData = server.arg("delay").toInt();
   }
   server.send(200, "text/plain", message);
@@ -75,7 +78,7 @@ void setup(void) {
   pinMode(relay, OUTPUT);
   digitalWrite(relay, LOW);
   Serial.begin(115200);
-  
+
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   Serial.println("");
@@ -85,6 +88,7 @@ void setup(void) {
     delay(500);
     Serial.print(".");
   }
+
   Serial.println("");
   Serial.print("Connected to ");
   Serial.println(ssid);
@@ -98,28 +102,38 @@ void setup(void) {
   server.on("/", handleRoot);
   server.on("/setdelay", setDelay);
   server.onNotFound(handleNotFound);
-  
+
   server.begin();
   Serial.println("HTTP server started");
-  pcf8591.begin();
+  dht.setup(0, DHTesp::DHT11);
 }
 
 void loop(void) {
   server.handleClient();
   MDNS.update();
   if (millis() - timing_one > timeToDelaySendData){
-    blink();
-    timing_one = millis(); 
-    double a = pcf8591.analogRead(AIN1);
-    double temp = (1 / (0.003354016 + (0.000253165)*log((1000 * a)/(256 - a)/5150))) - 273.15;
-    int bright = pcf8591.analogRead(AIN0);
-    sendData(temp, bright);
-    Serial.print("temp:");  
-    Serial.print(temp);
-    Serial.print(" bright:");
-    Serial.println(bright);   
+    timing_one = millis();
+    float humidity = dht.getHumidity();
+    float temperature = dht.getTemperature();
+
+    if (isnan(humidity) || isnan(temperature)) {
+      Serial.println(F("Failed to read from DHT sensor!"));
+      return;
+    }
+
+    float hic = dht.computeHeatIndex(temperature, humidity, false);
+
+    sendData(temperature, humidity, hic);
+
+    Serial.print(F("Humidity: "));
+    Serial.print(humidity);
+    Serial.print(F("%  Temperature: "));
+    Serial.print(temperature);
+    Serial.print(F("°C  Heat index: "));
+    Serial.print(hic);
+    Serial.println(F("°C "));
   }
-  
+
   if (millis() - timing_two > timeToDelayGetState){
     timing_two = millis();
     String state = getLampState();
@@ -132,28 +146,18 @@ void loop(void) {
       } else {
         digitalWrite(relay, LOW);
         Serial.println("Lamp off!");
-      }        
+      }
     }
   }
 }
 
-void blink(){
-   if (greenDiode) {
-      pcf8591.analogWrite(0);
-      greenDiode = false;
-   } else {
-      pcf8591.analogWrite(255);
-      greenDiode = true;
-   }
-}
-
-void sendData(double temp, int bright){
+void sendData(double temperature, double humidity, double heatIndex){
   WiFiClientSecure client;
   client.setFingerprint(fingerprint);
   if (!client.connect(host, httpsPort)) {
     return;
   }
-  String url = url + "/send-data?temp=" + temp + "&bright=" + bright;
+  String url = url + "/send-data?temp=" + temperature + "&humidity=" + humidity + "&heatindex=" + heatIndex;
   client.print(String("GET ") + url + " HTTP/1.1\r\n" +
                "Host: " + host + "\r\n" +
                "User-Agent: Arduino WiFi Shield\r\n" +

@@ -60,7 +60,7 @@ def is_float(str):
 
 class send_data:
     def GET(self):
-        i = web.input(temp=None, bright=None, humidity=None, heatindex=None)
+        i = web.input(temp=None, humidity=None, heatindex=None)
         if is_float(i.temp) or i.temp.isdigit():
             if -50.0 <= float(i.temp) <= 50.0:
                 temp_lst.append(float(i.temp))
