@@ -1,77 +1,65 @@
 #include "DHTesp.h"
-
-#ifdef ESP32
-#pragma message(THIS EXAMPLE IS FOR ESP8266 ONLY!)
-#error Select ESP8266 board.
-#endif
-
 DHTesp dht;
-
+#include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 
-#ifndef STASSID
-#define STASSID "you_ssid"
-#define STAPSK  "you_password"
-#endif
+#define STASSID "your_ssid"
+#define STAPSK  "your_password"
 
-//======================
 long timeToDelaySendData = 2500;
 long timeToDelayGetState = 1000;
 unsigned long timing_one;
 unsigned long timing_two;
 const int relay = D2;
-//======================
-
-String previousState = "False";
-
+bool previousState = false;
 const char* ssid = STASSID;
 const char* password = STAPSK;
 
 ESP8266WebServer server(80);
 
-//======================
 const char* host = "vlad-weather-application.herokuapp.com";
 const int httpsPort = 443;
 
-// Use web browser to view and copy
-// SHA1 fingerprint of the certificate
 const char fingerprint[] PROGMEM = "94 FC F6 23 6C 37 D5 E7 92 78 3C 0B 5F AD 0C E4 9E FD 9E A8";
-//======================
 
 void handleRoot() {
-  server.send(200, "text/plain", "use setdelay?delay=\"you_delay\" for set a delay for sending temperature data");
+  server.send(200, "text/html", "<!DOCTYPE html><html lang=\"en\"><head><title>esp8266</title></head><body><p>use <b>server.name/setdelay?delay=\"you_delay\"</b> for set a delay for sending temperature data</p></body></html>");
 }
 
 void handleNotFound() {
-  String message = "File Not Found\n\n";
-  message += "URI: ";
-  message += server.uri();
-  message += "\nMethod: ";
-  message += (server.method() == HTTP_GET) ? "GET" : "POST";
-  message += "\nArguments: ";
-  message += server.args();
-  message += "\n";
+  String output = "";
+  StaticJsonDocument<192> doc;
+  doc["message"] = "File Not Found";
+  doc["URI"] = server.uri();
+  doc["method"] = (server.method() == HTTP_GET) ? "GET" : "POST";
+  JsonObject arguments = doc.createNestedObject("arguments");
+  arguments["count"] = server.args();
   for (uint8_t i = 0; i < server.args(); i++) {
-    message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
+    arguments[server.argName(i)] = server.arg(i);
   }
-  server.send(404, "text/plain", message);
+  doc["code"] = 404;
+  serializeJson(doc, output);
+  server.send(404, "application/json", output);
 }
 
 void setDelay() {
-  String message = "";
+  String output;
+  StaticJsonDocument<128> doc;
   if (server.arg("delay") == "") {
-    message = "{\n    \"message\": \"Delay not specified!\",\n    \"code\": 404\n}";
+    doc["message"] = "Delay not specified!";
+    doc["value"]  = "none";
+    doc["code"] = "400";
   } else {
-    message = "{\n    \"message\": \"set a delay for sending temperature data\",\n    \"value\": ";
-    message += server.arg("delay");
-    message += ",\n    \"code\": 200\n}";
-
+    doc["message"] = "Set a delay for sending temperature data.";
+    doc["value"] = server.arg("delay");
+    doc["code"] = "200";
     timeToDelaySendData = server.arg("delay").toInt();
   }
-  server.send(200, "text/plain", message);
+  serializeJson(doc, output);
+  server.send(200, "application/json", output);
 }
 
 void setup(void) {
@@ -115,32 +103,30 @@ void loop(void) {
     timing_one = millis();
     float humidity = dht.getHumidity();
     float temperature = dht.getTemperature();
-
     if (isnan(humidity) || isnan(temperature)) {
       Serial.println(F("Failed to read from DHT sensor!"));
       return;
     }
-
     float hic = dht.computeHeatIndex(temperature, humidity, false);
 
     sendData(temperature, humidity, hic);
 
-    Serial.print(F("Humidity: "));
-    Serial.print(humidity);
-    Serial.print(F("%  Temperature: "));
-    Serial.print(temperature);
-    Serial.print(F("°C  Heat index: "));
-    Serial.print(hic);
-    Serial.println(F("°C "));
+    String output;
+    StaticJsonDocument<96> doc;
+    doc["humidity"] = humidity;
+    doc["temperature"] = temperature;
+    doc["heatindex"] = hic;
+    doc["code"] = "200";
+    serializeJson(doc, output);
+    Serial.println(output);
   }
 
   if (millis() - timing_two > timeToDelayGetState){
     timing_two = millis();
-    String state = getLampState();
-    state.trim();
-    if (!state.equals(previousState)){
+    bool state = getLampState();
+    if (state != previousState){
       previousState = state;
-      if (state.equals("True")) {
+      if (state) {
         digitalWrite(relay, HIGH);
         Serial.println("Lamp on!");
       } else {
@@ -170,7 +156,7 @@ void sendData(double temperature, double humidity, double heatIndex){
   }
 }
 
-String getLampState() {
+bool getLampState() {
   WiFiClientSecure client;
   client.setFingerprint(fingerprint);
   if (!client.connect(host, httpsPort)) {
@@ -181,12 +167,28 @@ String getLampState() {
                "Host: " + host + "\r\n" +
                "User-Agent: Arduino WiFi Shield\r\n" +
                "Connection: close\r\n\r\n");
+  String line = "";
   while (client.connected()) {
-    String line = client.readStringUntil('\n');
-    if (line == "\r") {
+    line = client.readStringUntil('\n');
+    if (line.equals("{")) {
       break;
     }
   }
-  client.readStringUntil('\n');
-  return client.readStringUntil('\n');
+
+  StaticJsonDocument<64> doc;
+  String input = line + client.readStringUntil('}') + '}';
+  DeserializationError error = deserializeJson(doc, input);
+  if (error) {
+    Serial.print(F("deserializeJson() failed: "));
+    Serial.println(error.f_str());
+    return previousState;
+  }
+
+  bool lamp_on = doc["lamp_on"];
+  int code = doc["code"];
+  if (code == 200) {
+    return lamp_on;
+  } else {
+    return previousState;
+  }
 }

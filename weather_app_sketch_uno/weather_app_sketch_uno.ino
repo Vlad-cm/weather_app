@@ -7,8 +7,7 @@
 DHT dht(DHTPIN, DHTTYPE);
 
 long timetodelay = 2500;
-unsigned long timing_one;
-unsigned long timing_two;
+unsigned long timing;
 String inputString = "";
 boolean stringComplete = false;
 
@@ -35,9 +34,8 @@ void loop()
         inputString = "";
         stringComplete = false;
     }
-    if (millis() - timing_one > timetodelay){
-      timing_one = millis(); 
-
+    if (millis() - timing > timetodelay){
+      timing = millis(); 
       float humidity = dht.readHumidity();
       float temperature = dht.readTemperature();
       if (isnan(humidity) || isnan(temperature)) {
