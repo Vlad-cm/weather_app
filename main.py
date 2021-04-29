@@ -36,7 +36,11 @@ def get_lamp_state():
 
 class lamp_state:
     def GET(self):
-        return get_lamp_state()
+        output = {
+            "lamp_on": get_lamp_state(),
+            "code": 200
+        }
+        return json.dumps(output, indent=4)
 
     def POST(self):
         db.insert('lamp_state', state=str(web.input().get("lampswitch")).strip(),
