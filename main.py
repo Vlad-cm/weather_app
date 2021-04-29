@@ -8,7 +8,8 @@ db = web.database(
     dburl="postgres://eqroiidmlipflp:505f497547db185a4824a73f51eba0f00801b146849d6676898be869c4909ebf@ec2-34-252-251-16.eu-west-1.compute.amazonaws.com:5432/d6lc3m0qdp3q1")
 
 temp_lst = []
-bright_lst = []
+humidity_lst = []
+heat_index_lst = []
 
 urls = (
     '/lamp-state', 'lamp_state',
@@ -59,19 +60,25 @@ def is_float(str):
 
 class send_data:
     def GET(self):
-        i = web.input(temp=None, bright=None)
+        i = web.input(temp=None, bright=None, humidity=None, heatindex=None)
         if is_float(i.temp) or i.temp.isdigit():
             if -50.0 <= float(i.temp) <= 50.0:
                 temp_lst.append(float(i.temp))
-        if i.bright.isdigit():
-            if 0 <= int(i.bright) <= 255:
-                bright_lst.append(int(i.bright))
-        if (len(temp_lst) or len(bright_lst)) >= 100:
-            db.insert('room_temp', temp=round(statistics.mean(temp_lst), 2), bright=int(statistics.mean(bright_lst)),
+        if is_float(i.humidity) or i.humidity.isdigit():
+            if 0 <= float(i.humidity) <= 100.0:
+                humidity_lst.append(float(i.humidity))
+        if is_float(i.heatindex) or i.heatindex.isdigit():
+            if -50.0 <= float(i.heatindex) <= 50.0:
+                heat_index_lst.append(float(i.heatindex))
+        if (len(temp_lst) or len(humidity_lst) or len(heat_index_lst)) >= 100:
+            db.insert('room_temp', temp=round(statistics.mean(temp_lst), 2),
+                      humidity=round(statistics.mean(humidity_lst), 2),
+                      heat_index=round(statistics.mean(heat_index_lst), 2),
                       date=web.SQLLiteral("current_timestamp"))
             temp_lst.clear()
-            bright_lst.clear()
-        return {'cod': 200}
+            humidity_lst.clear()
+            heat_index_lst.clear()
+        return {"code": 200}
 
 
 class get_temp:
@@ -88,7 +95,7 @@ class get_temp:
 
 def get_data_from_home():
     last_row = db.select("room_temp", order="id DESC LIMIT 1")[0]
-    return {"temp": last_row["temp"], "bright": last_row["bright"]}
+    return {"temp": last_row["temp"], "humidity": last_row["humidity"], "heat_index": last_row["heat_index"]}
 
 
 def request_init(name):

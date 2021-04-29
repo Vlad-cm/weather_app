@@ -74,12 +74,16 @@ $def with (data, hometemp, is_room, lamp_state)
                             <h5 class="card-title">Temperature in my room</h5>
                             <div class="card-text">
                                     <div class="alert alert-primary" role="alert">
-                                        <span>Temperature in my room:&nbsp;</span>
+                                        <span>Temperature:&nbsp;</span>
                                         <span class="badge rounded-pill bg-success">$hometemp['temp'] &#8451;</span>
                                     </div>
                                     <div class="alert alert-primary" role="alert">
-                                        <span>Brightness in my room:&nbsp;</span>
-                                        <span class="badge rounded-pill bg-danger">$hometemp['bright']</span>
+                                        <span>Humidity:&nbsp;</span>
+                                        <span class="badge rounded-pill bg-danger">$hometemp['humidity']</span>
+                                    </div>
+                                    <div class="alert alert-primary" role="alert">
+                                        <span>Heat index:&nbsp;</span>
+                                        <span class="badge rounded-pill bg-warning">$hometemp['heat_index']</span>
                                     </div>
                             </div>
                           </div>
