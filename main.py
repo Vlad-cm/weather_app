@@ -1,11 +1,21 @@
 import json
+import os
+import sys
 
 import web
 import requests
 import statistics
 
-db = web.database(
-    dburl="postgres://eqroiidmlipflp:505f497547db185a4824a73f51eba0f00801b146849d6676898be869c4909ebf@ec2-34-252-251-16.eu-west-1.compute.amazonaws.com:5432/d6lc3m0qdp3q1")
+if 'DATABASE_URL' in os.environ:
+    db = web.database(dburl=os.environ['DATABASE_URL'])
+else:
+    with open('.dburl', 'r') as file:
+        dburl = file.readline()
+        if len(dburl) > 0:
+            db = web.database(dburl=dburl)
+        else:
+            print("Please set db url as DATABASE_URL enviroment variables or add to .dburl file and re-run app!")
+            sys.exit()
 
 temp_lst = []
 humidity_lst = []
@@ -93,7 +103,6 @@ class get_temp:
             "temp": data["main"]["temp"],
             "code": 200
         }
-
         return json.dumps(output, indent=4)
 
 
