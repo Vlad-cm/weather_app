@@ -45,42 +45,32 @@ def get_lamp_state():
     return str(db.select("lamp_state", order="id DESC LIMIT 1")[0]["state"]).strip() == "on"
 
 
-def get_data_from_db():
-    data = db.select("room_temp", where="date > current_date - interval '1' day")
-    data_set = {"temp": [],
-                "humidity": [],
-                "heat_index": [],
-                "date": []
-                }
-    temp, humidity, heat_index, date = [], [], [], []
-    for row in data:
-        if row["temp"] != None:
-            temp.append(float(row["temp"]))
-        else:
-            temp.append(0)
-        if row["humidity"] != None:
-            humidity.append(float(row["humidity"]))
-        else:
-            humidity.append(0)
-        if row["heat_index"] != None:
-            heat_index.append(float(row["heat_index"]))
-        else:
-            heat_index.append(0)
-        date.append(row["date"])
-    j = 0
-    for i in range(int(len(temp)/10)):
-        if j + 10 <= len(temp):
-            data_set.get("temp").append(round(statistics.mean(temp[j:j+10]), 2))
-            data_set.get("humidity").append(round(statistics.mean(humidity[j:j+10]), 2))
-            data_set.get("heat_index").append(round(statistics.mean(heat_index[j:j+10]), 2))
-            data_set.get("date").append((date[j] + (date[j + 9] - date[j]) / 10).strftime("%b %d %H:%M"))
-            j += 10
-    return json.dumps(data_set, indent=4)
-
-
 class get_data:
     def GET(self):
-        return get_data_from_db()
+        data = db.select("room_temp", where="date > current_timestamp - interval '1' day")
+        data_set = {"temp": [],
+                    "humidity": [],
+                    "date": []
+                    }
+        temp, humidity, date = [], [], []
+        for row in data:
+            if row["temp"] != None:
+                temp.append(float(row["temp"]))
+            else:
+                temp.append(0)
+            if row["humidity"] != None:
+                humidity.append(float(row["humidity"]))
+            else:
+                humidity.append(0)
+            date.append(row["date"])
+        j = 0
+        for i in range(int(len(temp) / 5)):
+            if j + 5 <= len(temp):
+                data_set.get("temp").append(round(statistics.mean(temp[j:j + 5]), 2))
+                data_set.get("humidity").append(round(statistics.mean(humidity[j:j + 5]), 2))
+                data_set.get("date").append((date[j] + (date[j + 4] - date[j]) / 5).strftime("%d, %H:%M"))
+                j += 5
+        return json.dumps(data_set, indent=4)
 
 
 class lamp_state:
