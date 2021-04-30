@@ -72,20 +72,15 @@ $def with (data, hometemp, is_room, lamp_state)
                    <div class="card mt-4">
                           <div class="card-body">
                             <h5 class="card-title">Temperature in my room</h5>
-                            <div class="card-text">
-                                    <div class="alert alert-primary" role="alert">
-                                        <span>Temperature:&nbsp;</span>
-                                        <span class="badge rounded-pill bg-success">$hometemp['temp'] &#8451;</span>
-                                    </div>
-                                    <div class="alert alert-primary" role="alert">
-                                        <span>Humidity:&nbsp;</span>
-                                        <span class="badge rounded-pill bg-danger">$hometemp['humidity'] %</span>
-                                    </div>
-                                    <div class="alert alert-primary" role="alert">
-                                        <span>Heat index (feel like):&nbsp;</span>
-                                        <span class="badge rounded-pill bg-warning">$hometemp['heat_index'] &#8451;</span>
-                                    </div>
-       				                <canvas  id="myChart" width="400" height="400"></canvas>
+                            <div class="card-text text-center">
+                                <div class="alert alert-success" role="alert">
+                                    <smal><b>Real time data:</b></smal>
+                                    <hr>
+                                    <span class="badge rounded-pill bg-success">Temperature: $hometemp['temp'] &#8451;</span>
+                                    <span class="badge rounded-pill bg-danger">Humidity: $hometemp['humidity'] %</span>
+                                    <span class="badge rounded-pill bg-warning">Heat index (feel like): $hometemp['heat_index'] &#8451;</span>
+                                </div>
+                                <canvas  id="myChart" width="400" height="400"></canvas>
                             </div>
                           </div>
                    </div>

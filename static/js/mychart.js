@@ -39,7 +39,7 @@ $(document).ready(function() {
                 plugins: {
                     title: {
                         display: true,
-                        text: 'Data for the day'
+                        text: 'Data for the 24h'
                     }
                 }
             }
