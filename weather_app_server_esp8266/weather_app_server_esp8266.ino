@@ -7,7 +7,7 @@ DHTesp dht;
 #include <ESP8266mDNS.h>
 
 #define STASSID "your_ssid"
-#define STAPSK  "your_password"
+#define STAPSK  "your_pass"
 
 long timeToDelaySendData = 2500;
 long timeToDelayGetState = 1000;

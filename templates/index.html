@@ -85,9 +85,10 @@ $def with (data, hometemp, is_room, lamp_state)
                                         <span>Heat index (feel like):&nbsp;</span>
                                         <span class="badge rounded-pill bg-warning">$hometemp['heat_index'] &#8451;</span>
                                     </div>
+       				                <canvas class="m-3" id="myChart" width="400" height="400"></canvas>
                             </div>
                           </div>
-                        </div>
+                   </div>
                 </div>
             </div>
             <footer>
@@ -102,5 +103,7 @@ $def with (data, hometemp, is_room, lamp_state)
         <script src="/static/js/popper.min.js"></script>
         <script src="/static/js/bootstrap.min.js"></script>
         <script src="/static/js/weather-app.js"></script>
+    	<script src="/static/js/chart.js" type="text/javascript"></script>
+	    <script src="/static/js/mychart.js" type= "text/javascript"></script>
     </body>
 </html>
