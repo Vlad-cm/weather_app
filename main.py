@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 import sys
@@ -5,6 +6,8 @@ import sys
 import web
 import requests
 import statistics
+from websocket import create_connection
+
 
 if 'DATABASE_URL' in os.environ:
     db = web.database(dburl=os.environ['DATABASE_URL'])
@@ -23,7 +26,6 @@ heat_index_lst = []
 
 urls = (
     '/get-data', 'get_data',
-    '/lamp-state', 'lamp_state',
     '/send-data', 'send_data',
     '/get-temp', 'get_temp',
     '/(.*)', 'get_weather'
@@ -40,9 +42,15 @@ params = {
     'units': 'metric'
 }
 
-
-def get_lamp_state():
-    return str(db.select("lamp_state", order="id DESC LIMIT 1")[0]["state"]).strip() == "on"
+notify_dataset = {
+    "action": "weather_data",
+    "data": {
+        "temperature": "",
+        "humidity": "",
+        "heatindex": "",
+        "code": "200"
+    }
+}
 
 
 class get_data:
@@ -73,20 +81,6 @@ class get_data:
         return json.dumps(data_set, indent=4)
 
 
-class lamp_state:
-    def GET(self):
-        output = {
-            "lamp_on": get_lamp_state(),
-            "code": 200
-        }
-        return json.dumps(output, indent=4)
-
-    def POST(self):
-        db.insert('lamp_state', state=str(web.input().get("lampswitch")).strip(),
-                  date=web.SQLLiteral("current_timestamp"))
-        raise web.seeother('/' + str(web.input().get("cityname")).strip())
-
-
 def get_open_weather_data(name):
     if name is not None:
         params.update({'q': name})
@@ -99,6 +93,12 @@ def is_float(str):
         if str.replace(".", "").isdigit():
             result = True
     return result
+
+
+def notify_weather_data(json_data):
+    ws = create_connection("wss://wbskt.herokuapp.com")
+    ws.send(json_data)
+    ws.close()
 
 
 class send_data:
@@ -114,9 +114,9 @@ class send_data:
             if -50.0 <= float(i.heatindex) <= 50.0:
                 heat_index_lst.append(float(i.heatindex))
         if (len(temp_lst) or len(humidity_lst) or len(heat_index_lst)) >= 100:
-            db.insert('room_temp', temp=round(statistics.mean(temp_lst), 2),
-                      humidity=round(statistics.mean(humidity_lst), 2),
-                      heat_index=round(statistics.mean(heat_index_lst), 2),
+            db.insert('room_temp', temp=str(round(statistics.mean(temp_lst), 2)),
+                      humidity=str(round(statistics.mean(humidity_lst), 2)),
+                      heat_index=str(round(statistics.mean(heat_index_lst), 2)),
                       date=web.SQLLiteral("current_timestamp"))
             temp_lst.clear()
             humidity_lst.clear()
@@ -146,6 +146,10 @@ def request_init(name):
         data = {'cod': 404}
         is_room = True
         data_from_home = get_data_from_home()
+        notify_dataset["data"]["temperature"] = str(data_from_home["temp"])
+        notify_dataset["data"]["humidity"] = str(data_from_home["humidity"])
+        notify_dataset["data"]["heatindex"] = str(data_from_home["heat_index"])
+        notify_weather_data(json.dumps(notify_dataset))
     else:
         data = get_open_weather_data(name)
         is_room = False
@@ -155,11 +159,11 @@ def request_init(name):
 class get_weather:
     def GET(self, name):
         data, data_from_home, is_room = request_init(name.lower())
-        return render.index(data=data, hometemp=data_from_home, is_room=is_room, lamp_state=get_lamp_state())
+        return render.index(data=data, hometemp=data_from_home, is_room=is_room)
 
     def POST(self, name=None):
         data, data_from_home, is_room = request_init(web.input().get("name").lower())
-        return render.index(data=data, hometemp=data_from_home, is_room=is_room, lamp_state=get_lamp_state())
+        return render.index(data=data, hometemp=data_from_home, is_room=is_room)
 
 
 if __name__ == "__main__":

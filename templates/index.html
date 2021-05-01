@@ -1,4 +1,4 @@
-$def with (data, hometemp, is_room, lamp_state)
+$def with (data, hometemp, is_room)
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -15,26 +15,8 @@ $def with (data, hometemp, is_room, lamp_state)
                     <hr />
                     <form name="lampswitchform" action="/lamp-state" method="post">
                         <div class="form-check form-switch form-switch-md mt-2 mb-3" data-toggle="tooltip" data-placement="bottom" title="Turns on or off the lamp in my room">
-                        $if lamp_state:
-                            <input name="lampswitch" class="form-check-input" onclick="document.forms['lampswitchform'].submit();" type="checkbox" id="flexSwitchCheckDefault"  checked>
-                            $if data['cod'] == 200:
-                                <input name="cityname" type="text" value="$data["name"]" hidden>
-                            $else:
-                                $if is_room:
-                                    <input name="cityname" type="text" value="room" hidden>
-                                $else:
-                                    <input name="cityname" type="text" value="" hidden>
-                            <label class="form-check-label" for="flexSwitchCheckDefault">Lamp state(on/off)</label>
-                        $else:
-                            <input name="lampswitch" class="form-check-input" onclick="document.forms['lampswitchform'].submit();" type="checkbox" id="flexSwitchCheckDefault">
-                            $if data['cod'] == 200:
-                                <input name="cityname" type="text" value="$data["name"]" hidden>
-                            $else:
-                                $if is_room:
-                                    <input name="cityname" type="text" value="room" hidden>
-                                $else:
-                                    <input name="cityname" type="text" value="" hidden>
-                            <label class="form-check-label" for="flexSwitchCheckDefault">Lamp state(on/off)</label>
+                            <input name="lampswitch" class="form-check-input" onclick="document.forms['lampswitchform'].submit();" type="checkbox" id="lampswitch"  >
+                            <label class="form-check-label" for="lampswitch">Lamp state(on/off)</label>
                         </div>
                     </form>
                     <hr />
@@ -76,9 +58,9 @@ $def with (data, hometemp, is_room, lamp_state)
                                 <div class="alert alert-success" role="alert">
                                     <smal><b>Real time data:</b></smal>
                                     <hr>
-                                    <span class="badge rounded-pill bg-success">Temperature: $hometemp['temp'] &#8451;</span>
-                                    <span class="badge rounded-pill bg-danger">Humidity: $hometemp['humidity'] %</span>
-                                    <span class="badge rounded-pill bg-warning text-dark">Heat index (feel like): $hometemp['heat_index'] &#8451;</span>
+                                    <span id="temperature" class="badge rounded-pill bg-success">Temperature: $hometemp['temp'] &#8451;</span>
+                                    <span id="humidity" class="badge rounded-pill bg-danger">Humidity: $hometemp['humidity'] %</span>
+                                    <span id="heatindex" class="badge rounded-pill bg-warning text-dark">Heat index (feel like): $hometemp['heat_index'] &#8451;</span>
                                 </div>
                                 <canvas  id="myChart" width="400" height="400"></canvas>
                             </div>
@@ -90,6 +72,13 @@ $def with (data, hometemp, is_room, lamp_state)
                 <div class="row justify-content-center mt-3">
                     <div class="col-lg-4 text-center">
                         <p><small>© 2021 You can see the source code on my <a href="https://github.com/Vlad-cm/weather_app">GitHub</a></small></p>
+                        <p>
+                            <small>
+                                <span class="badge bg-warning text-dark" id="online"></span>
+                                <span class="badge bg-danger">users</span>
+                                <span class="badge bg-info text-dark">online</span>
+                            </small>
+                        </p>
                     </div>
                 </div>
             </footer>
@@ -97,8 +86,8 @@ $def with (data, hometemp, is_room, lamp_state)
         <script src="/static/js/jquery-3.5.1.js"></script>
         <script src="/static/js/popper.min.js"></script>
         <script src="/static/js/bootstrap.min.js"></script>
-        <script src="/static/js/weather-app.js"></script>
     	<script src="/static/js/chart.js" type="text/javascript"></script>
 	    <script src="/static/js/mychart.js" type= "text/javascript"></script>
+        <script src="/static/js/websocket.js" type="text/javascript"></script>
     </body>
 </html>
