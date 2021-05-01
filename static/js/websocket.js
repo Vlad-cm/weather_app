@@ -3,7 +3,7 @@ let temperature = document.querySelector("#temperature"),
     heatindex = document.querySelector("#heatindex"),
     lampswitch = document.querySelector("#lampswitch"),
     usersonline = document.querySelector("#online"),
-    websocket = new WebSocket("ws://wbskt.herokuapp.com/");
+    websocket = new WebSocket("wss://wbskt.herokuapp.com/");
 lampswitch.onclick = function(event) {
     let state = false;
     if (lampswitch.checked) {
