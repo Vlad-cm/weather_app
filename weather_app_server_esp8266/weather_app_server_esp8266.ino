@@ -6,32 +6,25 @@
 #define _WEBSOCKETS_LOGLEVEL_     1
 
 #include <WebSocketsClient_Generic.h>
-
 #include "DHTesp.h"
 #include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
-
 #include <Hash.h>
-
-#define STASSID "your_ssid"
-#define STAPSK  "your_pass"
 
 long timeToDelaySendData = 5000;
 unsigned long timing_one;
 const int relay = D2;
 bool previousState = false;
-const char* ssid = STASSID;
-const char* password = STAPSK;
+
+const char* ssid = "your_ssid";
+const char* password = "your_password";
 
 DHTesp dht;
 ESP8266WebServer server(80);
 WebSocketsClient webSocket;
-
-#define STASSID "w-station"
-#define STAPSK  "PUK!DBTk+ZbO"
 
 #define USE_SSL true
 
@@ -230,10 +223,9 @@ void loop(void) {
 }
 
 String formatFloat(float f_val) {
-  static char outstr[9];
-  dtostrf(f_val,7, 2, outstr);
-  String String(outstr);
-  return outstr;
+  static char outstr[7];
+  dtostrf(f_val, 5, 2, outstr);
+  return String(outstr);
 }
 
 void sendData(double temperature, double humidity, double heatIndex){
