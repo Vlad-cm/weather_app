@@ -4,12 +4,10 @@
 #endif
 
 #define _WEBSOCKETS_LOGLEVEL_     1
-
 #include <WebSocketsClient_Generic.h>
 #include "DHTesp.h"
 #include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
-#include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 #include <Hash.h>
@@ -35,11 +33,6 @@ WebSocketsClient webSocket;
 #define WS_SERVER "wbskt.herokuapp.com"
 #define WS_PORT 80
 #endif
-
-const char* host = "vlad-weather-application.herokuapp.com";
-const int httpsPort = 443;
-
-const char fingerprint[] PROGMEM = "94 FC F6 23 6C 37 D5 E7 92 78 3C 0B 5F AD 0C E4 9E FD 9E A8";
 
 bool alreadyConnected = false;
 
@@ -204,8 +197,6 @@ void loop(void) {
     }
     float hic = dht.computeHeatIndex(temperature, humidity, false); 
 
-    sendData(temperature, humidity, hic);
-
     String output;
     StaticJsonDocument<128> doc;
     doc["action"] = "weather_data";
@@ -226,23 +217,4 @@ String formatFloat(float f_val) {
   static char outstr[7];
   dtostrf(f_val, 5, 2, outstr);
   return String(outstr);
-}
-
-void sendData(double temperature, double humidity, double heatIndex){
-  WiFiClientSecure client;
-  client.setFingerprint(fingerprint);
-  if (!client.connect(host, httpsPort)) {
-    return;
-  }
-  String url = url + "/send-data?temp=" + temperature + "&humidity=" + humidity + "&heatindex=" + heatIndex;
-  client.print(String("GET ") + url + " HTTP/1.1\r\n" +
-               "Host: " + host + "\r\n" +
-               "User-Agent: Arduino WiFi Shield\r\n" +
-               "Connection: close\r\n\r\n");
-  while (client.connected()) {
-    String line = client.readStringUntil('\n');
-    if (line == "\r") {
-      break;
-    }
-  }
 }
