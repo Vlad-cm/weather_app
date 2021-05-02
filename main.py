@@ -71,12 +71,14 @@ class get_data:
                 humidity.append(0)
             date.append(row["date"])
         j = 0
-        for i in range(int(len(temp) / 5)):
+        for i in range(int(len(temp) / 5) + 1):
             if j + 5 <= len(temp):
                 data_set.get("temp").append(round(statistics.mean(temp[j:j + 5]), 2))
                 data_set.get("humidity").append(round(statistics.mean(humidity[j:j + 5]), 2))
                 data_set.get("date").append((date[j] + (date[j + 4] - date[j]) / 5).strftime("%d, %H:%M"))
                 j += 5
+            else:
+                j = len(temp) - 5
         return json.dumps(data_set, indent=4)
 
 
