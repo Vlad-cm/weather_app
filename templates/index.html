@@ -13,12 +13,10 @@ $def with (data, hometemp, is_room)
             <div class="row justify-content-center">
                 <div class="col-lg-4">
                     <hr />
-                    <form name="lampswitchform" action="/lamp-state" method="post">
-                        <div class="form-check form-switch form-switch-md mt-2 mb-3" data-toggle="tooltip" data-placement="bottom" title="Turns on or off the lamp in my room">
-                            <input name="lampswitch" class="form-check-input" onclick="document.forms['lampswitchform'].submit();" type="checkbox" id="lampswitch"  >
+                        <div class="form-check form-switch form-switch-md mt-3 mb-3" data-toggle="tooltip" data-placement="bottom" title="Turns on or off the lamp in my room">
+                            <input name="lampswitch" class="form-check-input" type="checkbox" id="lampswitch"  >
                             <label class="form-check-label" for="lampswitch">Lamp state(on/off)</label>
                         </div>
-                    </form>
                     <hr />
                 $if data['cod'] == 200:
                     <div class="card">
@@ -34,38 +32,39 @@ $def with (data, hometemp, is_room)
                         </div>
                     </div>
                 $else:
-                    <div class="text-center">
-                        <h1>Nothing found!</h1>
-                        <p>Please use the following type of request:</p>
-                        <p>http://site.name/<b>Cityname</b></p>
-                        <h3>OR</h3>
-                    </div>
+                    $if not is_room:
+                        <div class="text-center">
+                            <h1>Nothing found!</h1>
+                            <p>Please use the following type of request:</p>
+                            <p>http://site.name/<b>Cityname</b></p>
+                            <h3>OR</h3>
+                        </div>
+                $if is_room:
+                   <div class="card mt-4">
+                          <div class="card-body">
+                                <h5 class="card-title">Temperature in my room</h5>
+                                <div class="card-text text-center">
+                                    <div class="alert alert-light" role="alert">
+                                        <smal><b>Real time data:</b></smal>
+                                        <hr>
+                                        <span id="temperature" class="badge rounded-pill bg-success">Temperature: $hometemp['temp'] &#8451;</span>
+                                        <span id="humidity" class="badge rounded-pill bg-danger">Humidity: $hometemp['humidity'] %</span>
+                                        <span id="heatindex" class="badge rounded-pill bg-warning text-dark">Heat index (feel like): $hometemp['heat_index'] &#8451;</span>
+                                    </div>
+                                    <canvas  id="myChart" width="400" height="400"></canvas>
+                                </div>
+                          </div>
+                   </div>
+                $if data['cod'] != 200 and not is_room:
+                    <div class="text-center mt-3"><i><small>If you want to see the temperature in my room, use <b>"room"</b> instead of the <b>city name</b></small></i></div>
+                $else:
+                    <div></div>
                 <form action="/" method="post">
                     <div class="input-group mb-3 mt-4">
                         <input type="text" name="name" class="form-control" placeholder="Enter city name" aria-label="City name" aria-describedby="button-addon2">
                         <button class="btn btn-outline-secondary" type="submit" id="button-addon2">Find</button>
                     </div>
                 </form>
-                $if data['cod'] != 200:
-                    <div class="text-center"><i><small>If you want to see the temperature in my room, use <b>"room"</b> instead of the <b>city name</b></small></i></div>
-                $else:
-                    <div></div>
-                $if is_room:
-                   <div class="card mt-4">
-                          <div class="card-body">
-                            <h5 class="card-title">Temperature in my room</h5>
-                            <div class="card-text text-center">
-                                <div class="alert alert-success" role="alert">
-                                    <smal><b>Real time data:</b></smal>
-                                    <hr>
-                                    <span id="temperature" class="badge rounded-pill bg-success">Temperature: $hometemp['temp'] &#8451;</span>
-                                    <span id="humidity" class="badge rounded-pill bg-danger">Humidity: $hometemp['humidity'] %</span>
-                                    <span id="heatindex" class="badge rounded-pill bg-warning text-dark">Heat index (feel like): $hometemp['heat_index'] &#8451;</span>
-                                </div>
-                                <canvas  id="myChart" width="400" height="400"></canvas>
-                            </div>
-                          </div>
-                   </div>
                 </div>
             </div>
             <footer>

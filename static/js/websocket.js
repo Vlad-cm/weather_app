@@ -3,24 +3,29 @@ let temperature = document.querySelector("#temperature"),
     heatindex = document.querySelector("#heatindex"),
     lampswitch = document.querySelector("#lampswitch"),
     usersonline = document.querySelector("#online"),
-    websocket = new WebSocket("wss://wbskt.herokuapp.com/");
+    url = "wss://wbskt.herokuapp.com/",
+    ws = new WebSocket(url);
+
 lampswitch.onclick = function(event) {
     let state = false;
     if (lampswitch.checked) {
         state = true
     }
-    websocket.send(JSON.stringify({ action: 'lampstate', lamp_on: state }));
-}
-websocket.onmessage = function(event) {
+    ws.send(JSON.stringify({ action: 'lampstate', lamp_on: state }));
+};
+
+function connect() {
+  ws = new WebSocket(url);
+  ws.onmessage = function(event) {
     data = JSON.parse(event.data);
     switch (data.type) {
         case 'weather_data':
             if (temperature != null)
-                temperature.textContent = "Temperature: " + data.data.temperature + " ℃";
+               temperature.textContent = "Temperature: " + data.data.temperature + " ℃";
             if (humidity != null)
-                humidity.textContent = "Humidity: " + data.data.humidity + " %";
+               humidity.textContent = "Humidity: " + data.data.humidity + " %";
             if (heatindex != null)
-                heatindex.textContent = "Heat index (feel like): " + data.data.heatindex + " ℃";
+               heatindex.textContent = "Heat index (feel like): " + data.data.heatindex + " ℃";
             break;
         case 'lampstate':
             lampswitch.checked = data.lamp_on;
@@ -29,7 +34,21 @@ websocket.onmessage = function(event) {
             usersonline.textContent = data.count;
             break;
         default:
-            console.error(
-                "unsupported event", data);
-    }
-};
+            console.error("unsupported event", data);
+        }
+  };
+
+  ws.onclose = function(e) {
+    console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
+    setTimeout(function() {
+      connect();
+    }, 1000);
+  };
+
+  ws.onerror = function(err) {
+    console.error('Socket encountered error: ', err.message, 'Closing socket');
+    ws.close();
+  };
+}
+
+connect();
