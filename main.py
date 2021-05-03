@@ -12,7 +12,7 @@ if 'DATABASE_URL' in os.environ:
     db = web.database(dburl=os.environ['DATABASE_URL'])
 else:
     with open('.dburl', 'r') as file:
-        dburl = file.readline()
+        dburl = file.readline().strip()
         if len(dburl) > 0:
             db = web.database(dburl=dburl)
         else:
@@ -106,7 +106,7 @@ class send_data:
         status_code = 400
         temperature, humidity, heatindex = None, None, None
         i = web.input(temp=None, humidity=None, heatindex=None, suuid=None)
-        if i.suuid == server_uuid:
+        if i.suuid == str(server_uuid):
             if is_float(i.temp) or i.temp.isdigit():
                 if -50.0 <= float(i.temp) <= 50.0:
                     temperature = float(i.temp)
@@ -116,7 +116,7 @@ class send_data:
             if is_float(i.heatindex) or i.heatindex.isdigit():
                 if -50.0 <= float(i.heatindex) <= 50.0:
                     heatindex = float(i.heatindex)
-            if (temperature and humidity and humidity) != None:
+            if (temperature and humidity and heatindex) is not None:
                 db.insert('room_temp', temp=temperature, humidity=humidity, heat_index=heatindex,
                           date=web.SQLLiteral("current_timestamp"))
                 status_code = 200
