@@ -10,7 +10,6 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
-#include <Hash.h>
 
 long timeToDelaySendData = 5000;
 unsigned long timing_one;
@@ -183,6 +182,21 @@ void setup(void) {
   dht.setup(0, DHTesp::DHT11);
 }
 
+float average (float * array) {
+  int len = sizeof(array);
+  float sum = 0L ;
+  for (int i = 0 ; i < len ; i++)
+    sum += array [i] ;
+  return  sum / len;
+}
+
+#define AVG_SIZE 300
+float temperatureArray[AVG_SIZE];
+float humidityArray[AVG_SIZE];
+float hicArray[AVG_SIZE];
+
+int i = 0;
+
 void loop(void) {
   webSocket.loop();
   server.handleClient();
@@ -195,21 +209,33 @@ void loop(void) {
       Serial.println(F("Failed to read from DHT sensor!"));
       return;
     }
-    float hic = dht.computeHeatIndex(temperature, humidity, false); 
+    float hic = dht.computeHeatIndex(temperature, humidity, false);
 
-    String output;
-    StaticJsonDocument<128> doc;
-    doc["action"] = "weather_data";
+    temperatureArray[i] = temperature;
+    humidityArray[i] = humidity;
+    hicArray[i] = hic;
 
-    JsonObject data = doc.createNestedObject("data");
-    data["temperature"] = formatFloat(temperature);
-    data["humidity"] = formatFloat(humidity);
-    data["heatindex"] = formatFloat(hic);
-    data["code"] = "200";
-    serializeJson(doc, output);
-    
-    Serial.println(output);
-    webSocket.sendTXT(output);
+    i += 1;
+    if (i >= AVG_SIZE) {
+        String output;
+        StaticJsonDocument<128> doc;
+        doc["action"] = "weather_data";
+
+        JsonObject data = doc.createNestedObject("data");
+        data["temperature"] = formatFloat(average(temperatureArray));
+        data["humidity"] = formatFloat(average(humidityArray));
+        data["heatindex"] = formatFloat(average(hicArray));
+        data["code"] = "200";
+        serializeJson(doc, output);
+
+        Serial.println(output);
+        webSocket.sendTXT(output);
+
+        i = 0;
+        memset(temperatureArray, 0, sizeof(temperatureArray));
+        memset(humidityArray, 0, sizeof(humidityArray));
+        memset(hicArray, 0, sizeof(hicArray));
+    }
   }
 }
 
