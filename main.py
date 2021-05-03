@@ -122,7 +122,7 @@ class send_data:
             temp_lst.clear()
             humidity_lst.clear()
             heat_index_lst.clear()
-        return {"code": 200}
+        return {"code": 200, "homeurl": web.ctx.home}
 
 
 class get_temp:

@@ -48,11 +48,13 @@ if (chart != null)
         });
 }
 
-function removeOldestData(chart) {
-    chart.data.labels.shift();
-    chart.data.datasets.forEach((dataset) => {
-        dataset.data.shift();
-    });
+function removeOldestData(chart, n) {
+    for (var i = 0; i < n; i++) {
+        chart.data.labels.shift();
+        chart.data.datasets.forEach((dataset) => {
+            dataset.data.shift();
+        });
+    }
     chart.update();
 }
 
@@ -68,7 +70,6 @@ if (myChart != null)
     });
 }
 
-
 const interval = setInterval(function() {
     $.getJSON("/get-data", function(response) {
         let difflabels = response["date"].filter(x => !myChart.data.labels.includes(x));
@@ -76,12 +77,11 @@ const interval = setInterval(function() {
             let difftemp = response["temp"].filter(x => !myChart.data.labels.includes(x));
             let diffhumidity = response["humidity"].filter(x => !myChart.data.labels.includes(x));
             for (var i = 0; i < difflabels.length; i++) {
-                removeOldestData(chart);
                 myChart.data.labels.push(difflabels[i]);
                 myChart.data.datasets[0].data.push(difftemp[i]);
                 myChart.data.datasets[1].data.push(diffhumidity[i]);
             };
-            myChart.update();
+            removeOldestData(myChart, difflabels.length);
         }
     });
  }, 60000);
