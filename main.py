@@ -1,12 +1,12 @@
 import json
 import os
 import sys
+import uuid
 
 import web
 import requests
 import statistics
 from websocket import create_connection
-
 
 if 'DATABASE_URL' in os.environ:
     db = web.database(dburl=os.environ['DATABASE_URL'])
@@ -19,9 +19,8 @@ else:
             print("Please set db url as DATABASE_URL enviroment variables or add to .dburl file and re-run app!")
             sys.exit()
 
-temp_lst = []
-humidity_lst = []
-heat_index_lst = []
+websocket_server = "wbskt.herokuapp.com"
+server_uuid = uuid.uuid5(uuid.NAMESPACE_URL, websocket_server)
 
 urls = (
     '/get-data', 'get_data',
@@ -97,32 +96,31 @@ def is_float(str):
 
 
 def notify_weather_data(json_data):
-    ws = create_connection("wss://wbskt.herokuapp.com")
+    ws = create_connection("wss://" + websocket_server)
     ws.send(json_data)
     ws.close()
 
 
 class send_data:
     def GET(self):
-        i = web.input(temp=None, humidity=None, heatindex=None)
-        if is_float(i.temp) or i.temp.isdigit():
-            if -50.0 <= float(i.temp) <= 50.0:
-                temp_lst.append(float(i.temp))
-        if is_float(i.humidity) or i.humidity.isdigit():
-            if 0 <= float(i.humidity) <= 100.0:
-                humidity_lst.append(float(i.humidity))
-        if is_float(i.heatindex) or i.heatindex.isdigit():
-            if -50.0 <= float(i.heatindex) <= 50.0:
-                heat_index_lst.append(float(i.heatindex))
-        if (len(temp_lst) or len(humidity_lst) or len(heat_index_lst)) >= 100:
-            db.insert('room_temp', temp=str(round(statistics.mean(temp_lst), 2)),
-                      humidity=str(round(statistics.mean(humidity_lst), 2)),
-                      heat_index=str(round(statistics.mean(heat_index_lst), 2)),
-                      date=web.SQLLiteral("current_timestamp"))
-            temp_lst.clear()
-            humidity_lst.clear()
-            heat_index_lst.clear()
-        return {"code": 200, "homeurl": web.ctx.home}
+        status_code = 400
+        temperature, humidity, heatindex = None, None, None
+        i = web.input(temp=None, humidity=None, heatindex=None, suuid=None)
+        if i.suuid == server_uuid:
+            if is_float(i.temp) or i.temp.isdigit():
+                if -50.0 <= float(i.temp) <= 50.0:
+                    temperature = float(i.temp)
+            if is_float(i.humidity) or i.humidity.isdigit():
+                if 0 <= float(i.humidity) <= 100.0:
+                    humidity = float(i.humidity)
+            if is_float(i.heatindex) or i.heatindex.isdigit():
+                if -50.0 <= float(i.heatindex) <= 50.0:
+                    heatindex = float(i.heatindex)
+            if (temperature and humidity and humidity) != None:
+                db.insert('room_temp', temp=temperature, humidity=humidity, heat_index=heatindex,
+                          date=web.SQLLiteral("current_timestamp"))
+                status_code = 200
+        return json.dumps({"code": status_code})
 
 
 class get_temp:
