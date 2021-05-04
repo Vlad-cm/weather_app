@@ -2,10 +2,13 @@ import json
 import os
 import sys
 import uuid
+from builtins import reversed
 
 import web
 import requests
 import statistics
+
+from web import data
 from websocket import create_connection
 
 if 'DATABASE_URL' in os.environ:
@@ -53,7 +56,7 @@ notify_dataset = {
 
 class get_data:
     def GET(self):
-        data = list(db.select("room_temp", where="date > current_timestamp - interval '1' day"))
+        data = list(db.select("room_temp", where="date > current_timestamp - interval '1' day", order="id DESC LIMIT 48"))[::-1]
         data_set = {
             "temp": [],
             "humidity": [],
@@ -67,6 +70,7 @@ class get_data:
                     data_set.get("temp").append(str(round(row["temp"], 2)))
                     data_set.get("humidity").append(str(round(row["humidity"], 2)))
                     data_set.get("date").append(row["date"].strftime("%d, %H:%M"))
+        print(len(data_set.get("temp")))
         return json.dumps(data_set, indent=4)
 
 
