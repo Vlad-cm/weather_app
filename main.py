@@ -2,13 +2,8 @@ import json
 import os
 import sys
 import uuid
-from builtins import reversed
-
-import web
 import requests
-import statistics
-
-from web import data
+import web
 from websocket import create_connection
 
 if 'DATABASE_URL' in os.environ:

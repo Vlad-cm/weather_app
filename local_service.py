@@ -16,7 +16,6 @@ LOCAL_DEBUG = False
 if sys.version == "win32":
     import win32con
     import win32gui
-
     if not LOCAL_DEBUG:
         hide = win32gui.GetForegroundWindow()
         win32gui.ShowWindow(hide, win32con.SW_HIDE)
@@ -91,7 +90,7 @@ def on_message(ws, message):
     if data["type"] == "lampstate":
         LAMPSTATE = data["lamp_on"]
         if LOCAL_DEBUG:
-            print("LAMPSTATE", LAMPSTATE)
+            print("LAMPSTATE: ", LAMPSTATE)
 
 def on_open(ws):
     def run(*args):
