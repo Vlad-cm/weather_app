@@ -6,7 +6,7 @@
 
 DHT dht(DHTPIN, DHTTYPE);
 
-long timetodelay = 2500;
+long timetodelay = 5000;
 unsigned long timing;
 String inputString = "";
 boolean stringComplete = false;
@@ -18,6 +18,13 @@ void setup()
     Serial.begin(115200);
     dht.begin();
 }
+
+#define AVG_SIZE 300
+float temperatureAvg;
+float humidityAvg;
+float hicAvg;
+
+int i = 0;
 
 void loop()
 {  
@@ -35,22 +42,49 @@ void loop()
         stringComplete = false;
     }
     if (millis() - timing > timetodelay){
-      timing = millis(); 
-      float humidity = dht.readHumidity();
+      timing = millis();
       float temperature = dht.readTemperature();
+      float humidity = dht.readHumidity();
       if (isnan(humidity) || isnan(temperature)) {
         Serial.println(F("Failed to read from DHT sensor!"));
         return;
       }
       float hic = dht.computeHeatIndex(temperature, humidity, false);
+    
       String output;
-      StaticJsonDocument<48> doc;
-      doc["humidity"] = humidity;
-      doc["temperature"] = temperature;
-      doc["heatindex"] = hic;
-      doc["code"] = "200";
+      StaticJsonDocument<96> doc;
+      doc["action"] = "weather_data";
+
+      JsonObject data = doc.createNestedObject("data");
+      data["temperature"] = formatFloat(temperature);
+      data["humidity"] = formatFloat(humidity);
+      data["heatindex"] = formatFloat(hic);
+      data["code"] = "200";
       serializeJson(doc, output);
+      
       Serial.println(output);
+    
+      temperatureAvg += temperature;
+      humidityAvg += humidity;
+      hicAvg += hic;
+
+      i += 1;
+      if (i >= AVG_SIZE) {
+        String output;
+        StaticJsonDocument<96> doc;
+        doc["action"] = "weather_data_avg";
+        JsonObject data = doc.createNestedObject("data");
+        data["temperature"] = formatFloat(temperatureAvg / AVG_SIZE);
+        data["humidity"] = formatFloat(humidityAvg / AVG_SIZE);
+        data["heatindex"] = formatFloat(hicAvg / AVG_SIZE);
+        data["code"] = "200";
+        serializeJson(doc, output);
+        Serial.println(output);
+        temperatureAvg = 0;
+        humidityAvg = 0;
+        hicAvg = 0;
+        i = 0;
+      }
     };
 }
 
@@ -64,4 +98,10 @@ void serialEvent() {
             stringComplete = true;
         }
     }
+}
+
+String formatFloat(float f_val) {
+  static char outstr[7];
+  dtostrf(f_val, 5, 2, outstr);
+  return String(outstr);
 }

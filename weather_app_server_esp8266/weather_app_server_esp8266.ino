@@ -182,18 +182,10 @@ void setup(void) {
   dht.setup(0, DHTesp::DHT11);
 }
 
-float average (float * array) {
-  int len = sizeof(array);
-  float sum = 0L ;
-  for (int i = 0 ; i < len ; i++)
-    sum += array [i] ;
-  return  sum / len;
-}
-
 #define AVG_SIZE 300
-float temperatureArray[AVG_SIZE];
-float humidityArray[AVG_SIZE];
-float hicArray[AVG_SIZE];
+float temperatureAvg;
+float humidityAvg;
+float hicAvg;
 
 int i = 0;
 
@@ -210,31 +202,39 @@ void loop(void) {
       return;
     }
     float hic = dht.computeHeatIndex(temperature, humidity, false);
+    String output;
+    StaticJsonDocument<128> doc;
+    doc["action"] = "weather_data";
+    JsonObject data = doc.createNestedObject("data");
+    data["temperature"] = formatFloat(temperature);
+    data["humidity"] = formatFloat(humidity);
+    data["heatindex"] = formatFloat(hic);
+    data["code"] = "200";
+    serializeJson(doc, output);  
+    Serial.println(output);
+    webSocket.sendTXT(output);
 
-    temperatureArray[i] = temperature;
-    humidityArray[i] = humidity;
-    hicArray[i] = hic;
-
-    i += 1;
+    temperatureAvg += temperature;
+    humidityAvg += humidity;
+    hicAvg += hic;
+    
+    i++;
     if (i >= AVG_SIZE) {
-        String output;
-        StaticJsonDocument<128> doc;
-        doc["action"] = "weather_data";
-
-        JsonObject data = doc.createNestedObject("data");
-        data["temperature"] = formatFloat(average(temperatureArray));
-        data["humidity"] = formatFloat(average(humidityArray));
-        data["heatindex"] = formatFloat(average(hicArray));
-        data["code"] = "200";
-        serializeJson(doc, output);
-
-        Serial.println(output);
-        webSocket.sendTXT(output);
-
-        i = 0;
-        memset(temperatureArray, 0, sizeof(temperatureArray));
-        memset(humidityArray, 0, sizeof(humidityArray));
-        memset(hicArray, 0, sizeof(hicArray));
+      String output;
+      StaticJsonDocument<128> doc;
+      doc["action"] = "weather_data_avg";
+      JsonObject data = doc.createNestedObject("data");
+      data["temperature"] = formatFloat(temperatureAvg/AVG_SIZE);
+      data["humidity"] = formatFloat(humidityAvg/AVG_SIZE);
+      data["heatindex"] = formatFloat(hicAvg/AVG_SIZE);
+      data["code"] = "200";
+      serializeJson(doc, output);       
+      Serial.println(output);
+      webSocket.sendTXT(output);
+      temperatureAvg = 0;
+      humidityAvg = 0;
+      hicAvg = 0;
+      i = 0;
     }
   }
 }
