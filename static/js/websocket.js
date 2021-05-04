@@ -4,7 +4,7 @@ let temperature = document.querySelector("#temperature"),
     lampswitch = document.querySelector("#lampswitch"),
     usersonline = document.querySelector("#online"),
     url = "wss://wbskt.herokuapp.com/",
-    ws = new WebSocket(url);
+    ws;
 
 lampswitch.onclick = function(event) {
     let state = false;
