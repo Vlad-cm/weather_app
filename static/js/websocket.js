@@ -27,6 +27,8 @@ function connect() {
             if (heatindex != null)
                heatindex.textContent = "Heat index (feel like): " + data.data.heatindex + " ℃";
             break;
+        case 'weather_data_avg':
+            break;
         case 'lampstate':
             lampswitch.checked = data.lamp_on;
             break;

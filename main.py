@@ -53,31 +53,20 @@ notify_dataset = {
 
 class get_data:
     def GET(self):
-        data = db.select("room_temp", where="date > current_timestamp - interval '1' day")
-        data_set = {"temp": [],
-                    "humidity": [],
-                    "date": []
-                    }
-        temp, humidity, date = [], [], []
-        for row in data:
-            if row["temp"] != None:
-                temp.append(float(row["temp"]))
-            else:
-                temp.append(0)
-            if row["humidity"] != None:
-                humidity.append(float(row["humidity"]))
-            else:
-                humidity.append(0)
-            date.append(row["date"])
-        j = 0
-        for i in range(int(len(temp) / 5) + 1):
-            if j + 5 <= len(temp):
-                data_set.get("temp").append(round(statistics.mean(temp[j:j + 5]), 2))
-                data_set.get("humidity").append(round(statistics.mean(humidity[j:j + 5]), 2))
-                data_set.get("date").append((date[j] + (date[j + 4] - date[j]) / 5).strftime("%d, %H:%M"))
-                j += 5
-            else:
-                j = len(temp) - 5
+        data = list(db.select("room_temp", where="date > current_timestamp - interval '1' day"))
+        data_set = {
+            "temp": [],
+            "humidity": [],
+            "date": []
+        }
+        previous_data = [data[0]["temp"], data[0]["humidity"]]
+        for row in data[1:]:
+            if list([row["temp"], row["humidity"]]) != previous_data:
+                previous_data = list([row["temp"], row["humidity"]])
+                if (row["temp"] and row["humidity"]) != None:
+                    data_set.get("temp").append(str(round(row["temp"], 2)))
+                    data_set.get("humidity").append(str(round(row["humidity"], 2)))
+                    data_set.get("date").append(row["date"].strftime("%d, %H:%M"))
         return json.dumps(data_set, indent=4)
 
 
