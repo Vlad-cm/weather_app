@@ -81,7 +81,11 @@ const interval = setInterval(function() {
                 myChart.data.datasets[0].data.push(difftemp[i]);
                 myChart.data.datasets[1].data.push(diffhumidity[i]);
             };
-            removeOldestData(myChart, difflabels.length);
+            if (myChart.data.labels.length > 48) {
+                removeOldestData(myChart, difflabels.length);
+            } else {
+                myChart.update();
+            }
         }
     });
  }, 60000);
