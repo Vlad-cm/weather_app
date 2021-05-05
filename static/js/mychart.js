@@ -72,10 +72,11 @@ if (myChart != null)
 
 const interval = setInterval(function() {
     $.getJSON("/get-data", function(response) {
-        let difflabels = response["date"].filter(x => !myChart.data.labels.includes(x));
-        if (difflabels.length > 0) {
-            let difftemp = response["temp"].filter(x => !myChart.data.labels.includes(x));
-            let diffhumidity = response["humidity"].filter(x => !myChart.data.labels.includes(x));
+        let difftemp = response["temp"].filter(x => !myChart.data.datasets[0].data.includes(x));
+        if (difftemp.length > 0) {
+            let difflabels = response["date"].filter(x => !myChart.data.labels.includes(x));
+            let diffhumidity = response["humidity"].filter(x => !myChart.data.datasets[1].data.includes(x));
+            console.log(difftemp, difflabels, diffhumidity)
             for (var i = 0; i < difflabels.length; i++) {
                 myChart.data.labels.push(difflabels[i]);
                 myChart.data.datasets[0].data.push(difftemp[i]);

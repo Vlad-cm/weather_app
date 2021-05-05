@@ -31,7 +31,7 @@ function connect() {
            if (myChart != null)
             {
                 let today = new Date();
-                myChart.data.labels.push(('0' + today.getUTCDate()).slice(-2) + ", " + ('0' + today.getUTCHours()).slice(-2) + ":" + ('0' + today.getUTCMinutes()).slice(-2));
+                myChart.data.labels.push(('0' + today.getDate()).slice(-2) + ", " + ('0' + today.getHours()).slice(-2) + ":" + ('0' + today.getMinutes()).slice(-2));
                 myChart.data.datasets[0].data.push(data.data.temperature);
                 myChart.data.datasets[1].data.push(data.data.humidity);
                 if (myChart.data.labels.length > 48) {
