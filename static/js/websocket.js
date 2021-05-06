@@ -29,17 +29,7 @@ function connect() {
             break;
         case 'weather_data_avg':
            if (myChart != null)
-            {
-                let today = new Date();
-                myChart.data.labels.push(('0' + today.getDate()).slice(-2) + ", " + ('0' + today.getHours()).slice(-2) + ":" + ('0' + today.getMinutes()).slice(-2));
-                myChart.data.datasets[0].data.push(data.data.temperature);
-                myChart.data.datasets[1].data.push(data.data.humidity);
-                if (myChart.data.labels.length > 48) {
-                    removeOldestData(myChart, 1);
-                } else {
-                    myChart.update();
-                }
-            }
+            getData(true);
             break;
         case 'lampstate':
             lampswitch.checked = data.lamp_on;

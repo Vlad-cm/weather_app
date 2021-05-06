@@ -55,37 +55,28 @@ function removeOldestData(chart, n) {
             dataset.data.shift();
         });
     }
-    chart.update();
 }
 
-if (myChart != null)
-{
-    $.getJSON("/get-data", function(response) {
-        for (var i = 0; i < response["temp"].length; i++) {
-            myChart.data.labels.push(response["date"][i]);
-            myChart.data.datasets[0].data.push(response["temp"][i]);
-            myChart.data.datasets[1].data.push(response["humidity"][i]);
-        };
-        myChart.update();
-    });
-}
-
-const interval = setInterval(function() {
-    $.getJSON("/get-data", function(response) {
-        let difftemp = response["temp"].filter(x => !myChart.data.datasets[0].data.includes(x));
-        if (difftemp.length > 0) {
-            let difflabels = response["date"].filter(x => !myChart.data.labels.includes(x));
-            let diffhumidity = response["humidity"].filter(x => !myChart.data.datasets[1].data.includes(x));
-            for (var i = 0; i < difflabels.length; i++) {
-                myChart.data.labels.push(difflabels[i]);
-                myChart.data.datasets[0].data.push(difftemp[i]);
-                myChart.data.datasets[1].data.push(diffhumidity[i]);
-            };
-            if (myChart.data.labels.length > 48) {
-                removeOldestData(myChart, difftemp.length);
-            } else {
+function getData(checkDiff) {
+    if (myChart != null)
+    {
+        $.getJSON("/get-data", function(response) {
+            let diffed = []
+            if (checkDiff) {
+                diffed = response["temp"].filter(x => !myChart.data.datasets[0].data.includes(x));
+            }
+            if (!checkDiff || diffed.length > 0) {
+                myChart.data.labels = response["date"];
+                myChart.data.datasets[0].data = response["temp"];
+                myChart.data.datasets[1].data = response["humidity"];
+                removeOldestData(myChart, diffed.length)
                 myChart.update();
             }
-        }
-    });
+        });
+    }
+}
+getData();
+
+const interval = setInterval(function() {
+    getData(true)
  }, 60000);
