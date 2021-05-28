@@ -17,7 +17,7 @@ else:
             print("Please set db url as DATABASE_URL enviroment variables or add to .dburl file and re-run app!")
             sys.exit()
 
-websocket_server = "wbskt.herokuapp.com"
+websocket_server = "wbskt.smart-room.ml"
 server_uuid = uuid.uuid5(uuid.NAMESPACE_URL, websocket_server)
 
 urls = (

@@ -61,15 +61,18 @@ function getData(checkDiff) {
     if (myChart != null)
     {
         $.getJSON("/get-data", function(response) {
-            let diffed = []
+            let diffed = 0
             if (checkDiff) {
-                diffed = response["temp"].filter(x => !myChart.data.datasets[0].data.includes(x));
+                let diffTl, diffHl;
+                diffTl = response["temp"].filter(x => !myChart.data.datasets[0].data.includes(x)).length;
+                diffHl = response["humidity"].filter(x => !myChart.data.datasets[1].data.includes(x)).length;
+                diffed = (diffTl || diffHl) > 0 ? (diffTl >= diffHl ? diffTl:diffHl):0
             }
-            if (!checkDiff || diffed.length > 0) {
+            if (!checkDiff || diffed > 0) {
                 myChart.data.labels = response["date"];
                 myChart.data.datasets[0].data = response["temp"];
                 myChart.data.datasets[1].data = response["humidity"];
-                removeOldestData(myChart, diffed.length)
+                removeOldestData(myChart, diffed)
                 myChart.update();
             }
         });
