@@ -3,7 +3,7 @@ let temperature = document.querySelector("#temperature"),
     heatindex = document.querySelector("#heatindex"),
     lampswitch = document.querySelector("#lampswitch"),
     usersonline = document.querySelector("#online"),
-    url = "wss://wbskt.herokuapp.com/",
+    url = "wss://wbskt.smart-room.ml/",
     ws;
 
 lampswitch.onclick = function(event) {
