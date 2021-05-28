@@ -15,8 +15,22 @@ lampswitch.onclick = function(event) {
 };
 
 function connect() {
+  let pingTimeout;
   ws = new WebSocket(url);
+
+  function heartbeat() {
+    clearTimeout(pingTimeout);
+    pingTimeout = setTimeout(function() {
+      ws.close();
+    }, 15000);
+  }
+
+  ws.onopen = function() {
+      heartbeat();
+  }
+
   ws.onmessage = function(event) {
+    heartbeat();
     data = JSON.parse(event.data);
     switch (data.type) {
         case 'weather_data':
@@ -44,6 +58,7 @@ function connect() {
 
   ws.onclose = function(e) {
     console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
+    clearTimeout(pingTimeout);
     setTimeout(function() {
       connect();
     }, 1000);

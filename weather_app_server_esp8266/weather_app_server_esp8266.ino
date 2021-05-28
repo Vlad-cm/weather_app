@@ -26,10 +26,10 @@ WebSocketsClient webSocket;
 #define USE_SSL true
 
 #if USE_SSL
-#define WS_SERVER "wbskt.herokuapp.com"
+#define WS_SERVER "wbskt.smart-room.ml"
 #define WS_PORT 443
 #else
-#define WS_SERVER "wbskt.herokuapp.com"
+#define WS_SERVER "wbskt.smart-room.ml"
 #define WS_PORT 80
 #endif
 
