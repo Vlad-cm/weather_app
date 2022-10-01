@@ -179,7 +179,7 @@ void setup(void) {
   Serial.print("Connected to WebSockets Server @ IP address: ");
   Serial.println(WS_SERVER);
  
-  dht.setup(0, DHTesp::DHT11);
+  dht.setup(4, DHTesp::DHT11); //D2 pin
 }
 
 #define AVG_SIZE 300
