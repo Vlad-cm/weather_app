@@ -13,8 +13,9 @@
 
 long timeToDelaySendData = 5000;
 unsigned long timing_one;
-const int relay = D2;
-bool previousState = false;
+const int relay = D5;
+const int touchSensor = D6;
+bool touchState = false;
 
 const char* ssid = "your_ssid";
 const char* password = "your_password";
@@ -64,28 +65,22 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length)
         return;
       }
       if (doc["type"] == "lampstate") {
-        bool state = doc["lamp_on"];
-        if (state != previousState){
-          previousState = state;
-          if (state) {
-            digitalWrite(relay, HIGH);
-            Serial.println("Lamp on!");
-          } else {
-            digitalWrite(relay, LOW);
-            Serial.println("Lamp off!");
-          }
+        if (doc["lamp_on"]) {
+          digitalWrite(relay, HIGH);
+        } else {
+          digitalWrite(relay, LOW);
         }
       }
     }
     break;
     case WStype_BIN:
-      Serial.printf("[WSc] get binary length: %u\n", length);
+      //Serial.printf("[WSc] get binary length: %u\n", length);
       break;
     case WStype_PING:
-      Serial.printf("[WSc] get ping\n");
+      //Serial.printf("[WSc] get ping\n");
       break;
     case WStype_PONG:
-      Serial.printf("[WSc] get pong\n");
+      //Serial.printf("[WSc] get pong\n");
       break;
     case WStype_ERROR:
     case WStype_FRAGMENT_TEXT_START:
@@ -150,6 +145,9 @@ void setup(void) {
     Serial.print(".");
   }
 
+  WiFi.setAutoReconnect(true);
+  WiFi.persistent(true);
+
   Serial.println("");
   Serial.print("Connected to ");
   Serial.println(ssid);
@@ -211,7 +209,6 @@ void loop(void) {
     data["heatindex"] = formatFloat(hic);
     data["code"] = "200";
     serializeJson(doc, output);  
-    Serial.println(output);
     webSocket.sendTXT(output);
 
     temperatureAvg += temperature;
@@ -229,7 +226,6 @@ void loop(void) {
       data["heatindex"] = formatFloat(hicAvg/AVG_SIZE);
       data["code"] = "200";
       serializeJson(doc, output);       
-      Serial.println(output);
       webSocket.sendTXT(output);
       temperatureAvg = 0;
       humidityAvg = 0;
@@ -237,6 +233,25 @@ void loop(void) {
       i = 0;
     }
   }
+
+  if (digitalRead(touchSensor) == HIGH && !touchState){
+    touchState = !touchState;
+    digitalWrite(relay, HIGH);
+    sendLampState(true);
+  } else if (digitalRead(touchSensor) == LOW && touchState) {
+    touchState = !touchState;
+    digitalWrite(relay, LOW);
+    sendLampState(false);
+  }
+}
+
+void sendLampState(bool state) {
+  String output;
+  StaticJsonDocument<64> doc;
+  doc["action"] = "lampstate";
+  doc["lamp_on"] = state;
+  serializeJson(doc, output);  
+  webSocket.sendTXT(output);    
 }
 
 String formatFloat(float f_val) {
