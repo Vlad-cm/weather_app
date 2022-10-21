@@ -57,7 +57,7 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length)
       break;
     case WStype_TEXT:
     {
-      StaticJsonDocument<192> doc;
+      StaticJsonDocument<128> doc;
       DeserializationError error = deserializeJson(doc, payload);
       if (error) {
         Serial.print(F("deserializeJson() failed: "));
@@ -71,6 +71,8 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length)
           digitalWrite(relay, LOW);
         }
       }
+      doc.clear();
+      doc.garbageCollect();
     }
     break;
     case WStype_BIN:
@@ -108,6 +110,9 @@ void handleNotFound() {
   doc["code"] = 404;
   serializeJson(doc, output);
   server.send(404, "application/json", output);
+  output.clear();
+  doc.clear();
+  doc.garbageCollect();
 }
 
 void setDelay() {
@@ -125,6 +130,9 @@ void setDelay() {
   }
   serializeJson(doc, output);
   server.send(200, "application/json", output);
+  output.clear();
+  doc.clear();
+  doc.garbageCollect();
 }
 
 
@@ -198,7 +206,6 @@ void loop(void) {
       return;
     }
     float hic = dht.computeHeatIndex(temperature, humidity, false);
-    
     sendWeatherData("weather_data", formatFloat(temperature), formatFloat(humidity),formatFloat(hic));
     temperatureAvg += temperature;
     humidityAvg += humidity;
@@ -227,7 +234,7 @@ void loop(void) {
 
 void sendWeatherData(String action, String temperature, String humidity, String heatindex) { 
   String output;
-  StaticJsonDocument<128> doc;
+  StaticJsonDocument<144> doc;
   doc["action"] = action;
   JsonObject data = doc.createNestedObject("data");
   data["temperature"] = temperature;
@@ -236,6 +243,9 @@ void sendWeatherData(String action, String temperature, String humidity, String 
   data["code"] = "200";
   serializeJson(doc, output);       
   webSocket.sendTXT(output);
+  doc.clear();
+  doc.garbageCollect();
+  output.clear();
 }
 
 void sendLampState(bool state) {
@@ -245,6 +255,9 @@ void sendLampState(bool state) {
   doc["lamp_on"] = state;
   serializeJson(doc, output);  
   webSocket.sendTXT(output);    
+  doc.clear();
+  doc.garbageCollect();
+  output.clear();
 }
 
 String formatFloat(float f_val) {
