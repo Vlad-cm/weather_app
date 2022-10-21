@@ -74,13 +74,10 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length)
     }
     break;
     case WStype_BIN:
-      //Serial.printf("[WSc] get binary length: %u\n", length);
       break;
     case WStype_PING:
-      //Serial.printf("[WSc] get ping\n");
       break;
     case WStype_PONG:
-      //Serial.printf("[WSc] get pong\n");
       break;
     case WStype_ERROR:
     case WStype_FRAGMENT_TEXT_START:
@@ -151,6 +148,7 @@ void setup(void) {
   Serial.println("");
   Serial.print("Connected to ");
   Serial.println(ssid);
+
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
 
@@ -200,33 +198,15 @@ void loop(void) {
       return;
     }
     float hic = dht.computeHeatIndex(temperature, humidity, false);
-    String output;
-    StaticJsonDocument<128> doc;
-    doc["action"] = "weather_data";
-    JsonObject data = doc.createNestedObject("data");
-    data["temperature"] = formatFloat(temperature);
-    data["humidity"] = formatFloat(humidity);
-    data["heatindex"] = formatFloat(hic);
-    data["code"] = "200";
-    serializeJson(doc, output);  
-    webSocket.sendTXT(output);
-
+    
+    sendWeatherData("weather_data", formatFloat(temperature), formatFloat(humidity),formatFloat(hic));
     temperatureAvg += temperature;
     humidityAvg += humidity;
     hicAvg += hic;
     
     i++;
     if (i >= AVG_SIZE) {
-      String output;
-      StaticJsonDocument<128> doc;
-      doc["action"] = "weather_data_avg";
-      JsonObject data = doc.createNestedObject("data");
-      data["temperature"] = formatFloat(temperatureAvg/AVG_SIZE);
-      data["humidity"] = formatFloat(humidityAvg/AVG_SIZE);
-      data["heatindex"] = formatFloat(hicAvg/AVG_SIZE);
-      data["code"] = "200";
-      serializeJson(doc, output);       
-      webSocket.sendTXT(output);
+      sendWeatherData("weather_data_avg", formatFloat(temperatureAvg/AVG_SIZE), formatFloat(humidityAvg/AVG_SIZE), formatFloat(hicAvg/AVG_SIZE));
       temperatureAvg = 0;
       humidityAvg = 0;
       hicAvg = 0;
@@ -243,6 +223,19 @@ void loop(void) {
     digitalWrite(relay, LOW);
     sendLampState(false);
   }
+}
+
+void sendWeatherData(String action, String temperature, String humidity, String heatindex) { 
+  String output;
+  StaticJsonDocument<128> doc;
+  doc["action"] = action;
+  JsonObject data = doc.createNestedObject("data");
+  data["temperature"] = temperature;
+  data["humidity"] = humidity;
+  data["heatindex"] = heatindex;
+  data["code"] = "200";
+  serializeJson(doc, output);       
+  webSocket.sendTXT(output);
 }
 
 void sendLampState(bool state) {
