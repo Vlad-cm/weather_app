@@ -71,8 +71,6 @@ void webSocketEvent(WStype_t type, uint8_t * payload, size_t length)
           digitalWrite(relay, LOW);
         }
       }
-      doc.clear();
-      doc.garbageCollect();
     }
     break;
     case WStype_BIN:
@@ -110,9 +108,6 @@ void handleNotFound() {
   doc["code"] = 404;
   serializeJson(doc, output);
   server.send(404, "application/json", output);
-  output.clear();
-  doc.clear();
-  doc.garbageCollect();
 }
 
 void setDelay() {
@@ -130,9 +125,6 @@ void setDelay() {
   }
   serializeJson(doc, output);
   server.send(200, "application/json", output);
-  output.clear();
-  doc.clear();
-  doc.garbageCollect();
 }
 
 
@@ -243,9 +235,6 @@ void sendWeatherData(String action, String temperature, String humidity, String 
   data["code"] = "200";
   serializeJson(doc, output);       
   webSocket.sendTXT(output);
-  doc.clear();
-  doc.garbageCollect();
-  output.clear();
 }
 
 void sendLampState(bool state) {
@@ -255,9 +244,6 @@ void sendLampState(bool state) {
   doc["lamp_on"] = state;
   serializeJson(doc, output);  
   webSocket.sendTXT(output);    
-  doc.clear();
-  doc.garbageCollect();
-  output.clear();
 }
 
 String formatFloat(float f_val) {
