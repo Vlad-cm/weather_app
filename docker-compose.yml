@@ -1,24 +1,21 @@
 version: "3.9"
    
 services:
-  db:
-    image: postgres:latest
-    volumes:
-      - ./db/data:/var/lib/postgresql/data
-      - ./db/init:/docker-entrypoint-initdb.d/:ro
-    environment:
-      - POSTGRES_DB=postgres
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    container_name: postgresdb-container
-    user: postgres
   web:
-    image: weather-app:latest      #    build: .
+    build: .
     command: python main.py 80
     volumes:
       - .:/code
-    ports:
-      - "80"
     container_name: weatherapp-container
-    depends_on:
-      - db
+    networks:
+      - default
+      - postgres
+    restart: always
+
+networks:
+  default:
+    name: weather_app_default
+    internal: true
+  postgres:
+    name: postgres_default
+    external: true

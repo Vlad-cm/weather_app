@@ -17,7 +17,7 @@ else:
             print("Please set db url as DATABASE_URL enviroment variables or add to .dburl file and re-run app!")
             sys.exit()
 
-websocket_server = "wbskt.smart-room.ml"
+websocket_server = "wbskt.weather.line.pm"
 server_uuid = uuid.uuid5(uuid.NAMESPACE_URL, websocket_server)
 
 urls = (
@@ -135,7 +135,7 @@ def request_init(name):
         notify_dataset["data"]["temperature"] = str(data_from_home["temp"])
         notify_dataset["data"]["humidity"] = str(data_from_home["humidity"])
         notify_dataset["data"]["heatindex"] = str(data_from_home["heat_index"])
-        notify_weather_data(json.dumps(notify_dataset))
+        #notify_weather_data(json.dumps(notify_dataset))
     else:
         data = get_open_weather_data(name)
         is_room = False

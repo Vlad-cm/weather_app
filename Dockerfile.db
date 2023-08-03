@@ -1,3 +1,0 @@
-FROM postgres:latest
-
-ADD latest.dump /docker-entrypoint-initdb.d
