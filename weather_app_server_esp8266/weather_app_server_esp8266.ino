@@ -26,7 +26,7 @@ WebSocketsClient webSocket;
 
 #define USE_SSL true
 
-#define WS_SERVER "wbskt.weather.line.pm"
+#define WS_SERVER "wbskt.weather.oncook.top"
 
 #if USE_SSL
 #define WS_PORT 443

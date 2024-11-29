@@ -26,9 +26,9 @@ else:
 if LOCAL_DEBUG:
     url = 'http://localhost:8080'
 else:
-    url = 'https://vlad-weather-application.herokuapp.com'
+    url = 'https://weather.oncook.top'
 
-websocket_server = "wbskt.herokuapp.com"
+websocket_server = "wbskt.weather.oncook.top"
 server_uuid = uuid.uuid5(uuid.NAMESPACE_URL, websocket_server)
 
 LAMPSTATE = False

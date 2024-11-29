@@ -16,7 +16,7 @@ else:
             print("Please set db url as DATABASE_URL enviroment variables or add to .dburl file and re-run app!")
             sys.exit()
 
-server_uuid = uuid.uuid5(uuid.NAMESPACE_URL, "wbskt.weather.line.pm")
+server_uuid = uuid.uuid5(uuid.NAMESPACE_URL, "wbskt.weather.oncook.top")
 
 urls = (
     '/get-data', 'get_data',
