@@ -116,6 +116,7 @@ def get_data_from_home():
 
 def request_init(name):
     data_from_home = {'cod': 404}
+    name = name.strip()
     if name == "room":
         data = {'cod': 404}
         is_room = True
