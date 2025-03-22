@@ -3,7 +3,7 @@ let temperature = document.querySelector("#temperature"),
     heatindex = document.querySelector("#heatindex"),
     lampswitch = document.querySelector("#lampswitch"),
     usersonline = document.querySelector("#online"),
-    url = "wss://wbskt.weather.line.pm",
+    url = "wss://wbskt.weather.oncook.top",
     ws;
 
 lampswitch.onclick = function(event) {

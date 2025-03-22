@@ -4,7 +4,6 @@ import sys
 import uuid
 import requests
 import web
-from websocket import create_connection
 
 if 'DATABASE_URL' in os.environ:
     db = web.database(dburl=os.environ['DATABASE_URL'])
@@ -36,7 +35,6 @@ params = {
     'appid': '55a68388e0e2edf105c6dcb94ac9d6ba',
     'units': 'metric'
 }
-
 
 class get_data:
     def GET(self):

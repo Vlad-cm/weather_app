@@ -7,4 +7,4 @@ $ pip install -r requirements.txt
 $ python3 main.py <port>
 ```
 You can see how the application works by following the link:
-https://weather.line.pm
+https://weather.oncook.top

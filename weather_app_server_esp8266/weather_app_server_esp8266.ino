@@ -26,11 +26,11 @@ WebSocketsClient webSocket;
 
 #define USE_SSL true
 
+#define WS_SERVER "wbskt.weather.oncook.top"
+
 #if USE_SSL
-#define WS_SERVER "wbskt.smart-room.ml"
 #define WS_PORT 443
 #else
-#define WS_SERVER "wbskt.smart-room.ml"
 #define WS_PORT 80
 #endif
 
