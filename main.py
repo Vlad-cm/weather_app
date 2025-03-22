@@ -39,7 +39,6 @@ params = {
 class get_data:
     def GET(self):
         data = list(db.select("room_temp", where="date > current_timestamp - interval '1' day", order="id DESC LIMIT 72"))[::-1]
-        print(data)
         data_set = {
             "temp": [],
             "humidity": [],
