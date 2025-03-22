@@ -17,8 +17,7 @@ else:
             print("Please set db url as DATABASE_URL enviroment variables or add to .dburl file and re-run app!")
             sys.exit()
 
-websocket_server = "wbskt.weather.line.pm"
-server_uuid = uuid.uuid5(uuid.NAMESPACE_URL, websocket_server)
+server_uuid = uuid.uuid5(uuid.NAMESPACE_URL, "wbskt.weather.oncook.top")
 
 urls = (
     '/get-data', 'get_data',
@@ -38,33 +37,25 @@ params = {
     'units': 'metric'
 }
 
-notify_dataset = {
-    "action": "weather_data",
-    "data": {
-        "temperature": "",
-        "humidity": "",
-        "heatindex": "",
-        "code": "200"
-    }
-}
-
 
 class get_data:
     def GET(self):
         data = list(db.select("room_temp", where="date > current_timestamp - interval '1' day", order="id DESC LIMIT 72"))[::-1]
+        print(data)
         data_set = {
             "temp": [],
             "humidity": [],
             "date": []
         }
-        previous_data = [data[0]["temp"], data[0]["humidity"]]
-        for row in data[1:]:
-            if list([row["temp"], row["humidity"]]) != previous_data:
-                previous_data = list([row["temp"], row["humidity"]])
-                if (row["temp"] and row["humidity"]) != None:
-                    data_set.get("temp").append(str(round(row["temp"], 2)))
-                    data_set.get("humidity").append(str(round(row["humidity"], 2)))
-                    data_set.get("date").append(row["date"].strftime("%d, %H:%M"))
+        if len(data) > 0:
+            previous_data = [data[0]["temp"], data[0]["humidity"]]
+            for row in data[1:]:
+                if list([row["temp"], row["humidity"]]) != previous_data:
+                    previous_data = list([row["temp"], row["humidity"]])
+                    if (row["temp"] and row["humidity"]) != None:
+                        data_set.get("temp").append(str(round(row["temp"], 2)))
+                        data_set.get("humidity").append(str(round(row["humidity"], 2)))
+                        data_set.get("date").append(row["date"].strftime("%d, %H:%M"))
         return json.dumps(data_set, indent=4)
 
 
@@ -80,12 +71,6 @@ def is_float(str):
         if str.replace(".", "").isdigit():
             result = True
     return result
-
-
-def notify_weather_data(json_data):
-    ws = create_connection("wss://" + websocket_server)
-    ws.send(json_data)
-    ws.close()
 
 
 class send_data:
@@ -114,10 +99,15 @@ class get_temp:
     def GET(self):
         i = web.input(name=None)
         data = get_open_weather_data(i.name)
+        
+        if "cod" in data and data["cod"] != 200:
+            return json.dumps(data, indent=4)
+  
         output = {
             "temp": data["main"]["temp"],
-            "code": 200
+            "code": data["cod"]
         }
+ 
         return json.dumps(output, indent=4)
 
 
@@ -132,10 +122,6 @@ def request_init(name):
         data = {'cod': 404}
         is_room = True
         data_from_home = get_data_from_home()
-        notify_dataset["data"]["temperature"] = str(data_from_home["temp"])
-        notify_dataset["data"]["humidity"] = str(data_from_home["humidity"])
-        notify_dataset["data"]["heatindex"] = str(data_from_home["heat_index"])
-        #notify_weather_data(json.dumps(notify_dataset))
     else:
         data = get_open_weather_data(name)
         is_room = False

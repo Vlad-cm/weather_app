@@ -3,7 +3,7 @@ version: "3.9"
 services:
   web:
     build: .
-    command: python main.py 80
+    command: python main.py 8080
     volumes:
       - .:/code
     container_name: weatherapp-container
@@ -11,6 +11,7 @@ services:
       - default
       - postgres
     restart: always
+    user: 1000:1000
 
 networks:
   default:
