@@ -1,4 +1,3 @@
-
 #if !defined(ESP8266)
 #error This code is intended to run only on the ESP8266 boards ! Please check your Tools->Board setting.
 #endif
@@ -17,8 +16,9 @@ const int relay = D5;
 const int touchSensor = D6;
 bool touchState = false;
 
-const char* ssid = "your_ssid";
-const char* password = "your_password";
+const char* ssid = "buWb0WhNCYqxYwNP";  // if SSID is hidden, the AP must be in b/g/n mode and country information must be provided
+const char* password = "K5DbYBJzbSaaB7PU";
+wifi_country_t country = {"BY", 1, 13, WIFI_COUNTRY_POLICY_MANUAL};
 
 DHTesp dht;
 ESP8266WebServer server(80);
@@ -132,25 +132,11 @@ void setup(void) {
   pinMode(relay, OUTPUT);
   digitalWrite(relay, LOW);
   Serial.begin(115200);
-
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
-  Serial.println("");
-
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
+  
+  Serial.println("Trying to connect to WiFi network...");
+  while (!wifiReconnect()) {
+    delay(1000);
   }
-
-  WiFi.setAutoReconnect(true);
-  WiFi.persistent(true);
-
-  Serial.println("");
-  Serial.print("Connected to ");
-  Serial.println(ssid);
-
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
 
   if (MDNS.begin("esp8266")) {
     Serial.println("MDNS responder started");
@@ -185,10 +171,57 @@ float hicAvg;
 
 int i = 0;
 
+bool wifiReconnect() {
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
+ 
+  Serial.println("Trying to set WiFi country code...");  
+  if (wifi_set_country(&country)) {
+    Serial.printf("Wi-Fi country code successfully set to %s\n", country.cc);
+  } else {
+    Serial.println("Failed to set WiFi country code");
+  }
+
+  delay(100);
+
+  Serial.printf("Trying to connect to SSID %s...\n", ssid);  
+  WiFi.begin(ssid, password);
+  
+  unsigned long startAttemptTime = millis();
+  while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < 10000) {
+    Serial.print(".");
+
+    delay(500);
+  }
+  
+  Serial.println("");
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.printf("\nFailed to connect to SSID %s\n", ssid);
+
+    return false;
+  } 
+
+  Serial.printf("\nConnected to SSID: ");
+  Serial.print(ssid);
+  Serial.print(" BSSID: ");
+  Serial.print(WiFi.BSSIDstr());
+  Serial.print(" Channel: ");
+  Serial.println(WiFi.channel());
+
+  WiFi.setAutoReconnect(true);
+  WiFi.persistent(true);
+
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+
+  return true;
+}
+
 void loop(void) {
-  webSocket.loop();
+  webSocket.loop(); 
   server.handleClient();
   MDNS.update();
+
   if (millis() - timing_one > timeToDelaySendData){
     timing_one = millis();
     float humidity = dht.getHumidity();
