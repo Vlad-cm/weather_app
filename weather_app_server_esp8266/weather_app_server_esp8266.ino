@@ -127,6 +127,8 @@ void setDelay() {
   server.send(200, "application/json", output);
 }
 
+#define CONNECTION_ATTEMPT_TIMEOUT 10000
+#define NUMBER_OF_ATTEMPTS 3
 
 void setup(void) {
   pinMode(relay, OUTPUT);
@@ -134,8 +136,16 @@ void setup(void) {
   Serial.begin(115200);
   
   Serial.println("Trying to connect to WiFi network...");
-  while (!wifiReconnect()) {
+
+  unsigned long startAttemptTime = millis();
+  while (!wifiReconnect() && millis() - startAttemptTime < NUMBER_OF_ATTEMPTS*CONNECTION_ATTEMPT_TIMEOUT) {
     delay(1000);
+  }
+
+  if (!WiFi.isConnected()) {
+    Serial.println("WiFi connection timeout, restarting...");
+
+    ESP.restart();
   }
 
   if (MDNS.begin("esp8266")) {
@@ -148,33 +158,63 @@ void setup(void) {
 
   server.begin();
   Serial.println("HTTP server started");
+  
+  startAttemptTime = millis();
+  while (!webSocketReconnect() && millis() - startAttemptTime < NUMBER_OF_ATTEMPTS*CONNECTION_ATTEMPT_TIMEOUT) {
+    delay(1000);
+  }
+
+  if (!webSocket.isConnected()) {
+    Serial.println("WebSocket connection timeout, restarting...");
+
+    ESP.restart();
+  }
+ 
+  dht.setup(4, DHTesp::DHT11); //D2 pin
+}
+
+bool webSocketReconnect() {
+  if (!WiFi.isConnected()) {
+    ESP.restart();
+  }
 
   #if USE_SSL
   webSocket.beginSSL(WS_SERVER, WS_PORT);
   #else
   webSocket.begin(WS_SERVER, WS_PORT, "/");
   #endif
-
+  
   webSocket.onEvent(webSocketEvent);
   webSocket.setReconnectInterval(5000);
   webSocket.enableHeartbeat(15000, 3000, 2);
+ 
+  unsigned long startAttemptTime = millis();
+  while (!webSocket.isConnected() && millis() - startAttemptTime < CONNECTION_ATTEMPT_TIMEOUT) {
+      Serial.print(".");
+      webSocket.loop();
+      
+      delay(500);
+  }
+
+  Serial.println("");
+  if (!webSocket.isConnected()) {
+    Serial.printf("Failed to connect to WebSockets Server: %s", WS_SERVER);
+
+    return false;
+  }
+  
   Serial.print("Connected to WebSockets Server @ IP address: ");
   Serial.println(WS_SERVER);
  
-  dht.setup(4, DHTesp::DHT11); //D2 pin
+  return true;
 }
-
-#define AVG_SIZE 300
-float temperatureAvg;
-float humidityAvg;
-float hicAvg;
-
-int i = 0;
 
 bool wifiReconnect() {
   WiFi.mode(WIFI_STA);
-  WiFi.disconnect();
- 
+  
+  WiFi.disconnect(/*wifioff=*/true, /*eraseCredentials=*/true);
+  delay(100);
+
   Serial.println("Trying to set WiFi country code...");  
   if (wifi_set_country(&country)) {
     Serial.printf("Wi-Fi country code successfully set to %s\n", country.cc);
@@ -188,7 +228,7 @@ bool wifiReconnect() {
   WiFi.begin(ssid, password);
   
   unsigned long startAttemptTime = millis();
-  while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < 10000) {
+  while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < CONNECTION_ATTEMPT_TIMEOUT) {
     Serial.print(".");
 
     delay(500);
@@ -217,7 +257,36 @@ bool wifiReconnect() {
   return true;
 }
 
+#define MAX_CHECK_ATTEMPTS 100
+int webSocketChecksCount = 0;
+
+void checkWebSocketConnection() {
+  if (webSocket.isConnected()) {
+    webSocketChecksCount = 0;
+
+    return;
+  }
+  
+  if (webSocketChecksCount < MAX_CHECK_ATTEMPTS) {
+    webSocketChecksCount++;
+
+    return;   
+  }
+  
+  Serial.println("The websocket connection is completely lost, restarting...");
+  ESP.restart();
+}
+
+#define AVG_SIZE 300
+float temperatureAvg;
+float humidityAvg;
+float hicAvg;
+
+int i = 0;
+
 void loop(void) {
+  checkWebSocketConnection();
+
   webSocket.loop(); 
   server.handleClient();
   MDNS.update();
