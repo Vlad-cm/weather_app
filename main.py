@@ -30,9 +30,13 @@ render = web.template.render('templates/')
 api_url = "http://api.openweathermap.org/data/2.5/weather"
 app = web.application(urls, globals())
 
-params = {
+api_key = ''
+if 'OPEN_WEATHER_API_KEY' in os.environ: 
+    api_key = os.environ['OPEN_WEATHER_API_KEY']
+
+params = { 
     'q': 'Zhlobin',
-    'appid': '55a68388e0e2edf105c6dcb94ac9d6ba',
+    'appid': api_key,
     'units': 'metric'
 }
 

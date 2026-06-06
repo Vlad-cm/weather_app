@@ -3,6 +3,7 @@ Simple web application built using web.py and
 bootstrap web frameworks.
 For run project use:
 ```shell
+$ export OPEN_WEATHER_API_KEY=your_api_key
 $ pip install -r requirements.txt
 $ python3 main.py <port>
 ```
